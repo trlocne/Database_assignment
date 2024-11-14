@@ -1,0 +1,2 @@
+**************Folder này để chứa nguyên 1 trang nào đó*************
+=> mọi người thích thì dùng thôi nha, do trong hooks/useRouterCustome nó có định nghĩa cha con rồi.

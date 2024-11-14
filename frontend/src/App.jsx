@@ -1,16 +1,10 @@
-import './App.css'
-import { Navbar } from './component/Navbar/Navbar.jsx'
-import {CourseSingle} from './component/CourseSingle/CourseSingle.jsx'
+import "./App.css";
 
+import useRouterCustome from "./hooks/useRouterCustome.jsx";
 
 function App() {
-
-  return (
-    <div>
-      <Navbar />
-      <CourseSingle />
-    </div>
-  )
+  const router = useRouterCustome();
+  return router;
 }
 
-export default App
+export default App;
