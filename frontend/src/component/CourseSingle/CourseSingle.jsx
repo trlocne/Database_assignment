@@ -451,7 +451,7 @@ export const CourseSingle = () => {
                     </div>
                 </div>
             </div>
-            <div className='bg-white w-[100%] text-[#ffff] h-[300px]'>
+            <div className='bg-white w-[100%] text-[#ffff]'>
                 <div className='w-[1280px] mx-auto py-[50px] flex flex-row'>
                     <div className='w-[850px] text-black px-[10px] text-[16px]'>
                         <div className='bg-lightGrey min-h-[370px] w-[810px]'>
@@ -462,10 +462,8 @@ export const CourseSingle = () => {
                             </nav>
                             {lms(page)}
                         </div> 
-                    </div>
-                   
+                    </div>    
                 </div>
-                <Footer /> 
             </div>
         </div>
     </div>
