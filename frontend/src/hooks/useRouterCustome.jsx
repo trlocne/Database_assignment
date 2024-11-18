@@ -1,33 +1,10 @@
-// //import React from "react";
-
-// import { useRoutes } from "react-router-dom";
-// import HomeTemplate from "../Templates/HomeTemplate/HomeTemplate.jsx";
-// import { CourseSingle } from "../component/CourseSingle/CourseSingle.jsx";
-
-// const useRouterCustome = () => {
-//   const router = useRoutes([
-//     {
-//       path: "/",
-//       element: <HomeTemplate />,
-//       children: [
-//         {
-//           index: true,
-//           element: <CourseSingle />,
-//         },
-//       ],
-//     },
-//   ]);
-//   return router;
-// };
-
-// export default useRouterCustome;
-
 import { useRoutes } from "react-router-dom";
 import HomeTemplate from "../Templates/HomeTemplate/HomeTemplate.jsx";
 import { CourseSingle } from "../component/CourseSingle/CourseSingle.jsx";
 import Lecture from "../pages/Lecture.jsx";
 import CoursePage from "../component/CoursePage/CoursePage.jsx";
 import LoginRegister from "../component/LoginRegister/LoginRegister.jsx";
+import LMSInterface from "../component/Light/Light.jsx";
 
 const useRouterCustome = () => {
   const router = useRoutes([
@@ -39,9 +16,10 @@ const useRouterCustome = () => {
           index: true,
           element: <CourseSingle />,
         },
+
         {
           path: "lecture",
-          element: <Lecture />,
+          element: <LMSInterface />,
         },
       ],
     },
