@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-tailwind.config = {
+module.exports = {
   content: ["./src/**/*.{html,js,ts,jsx,tsx}"],
   theme: {
     extend: {
@@ -12,12 +12,10 @@ tailwind.config = {
         colorwhite: "var(--colorwhite)",
         "variable-collection-black": "var(--variable-collection-black)",
         "variable-collection-grey": "var(--variable-collection-grey)",
-        "variable-collection-light-grey":
-          "var(--variable-collection-light-grey)",
+        "variable-collection-light-grey": "var(--variable-collection-light-grey)",
         "variable-collection-primary": "var(--variable-collection-primary)",
         "variable-collection-white": "var(--variable-collection-white)",
-        "variable-collection-white-grey":
-          "var(--variable-collection-white-grey)",
+        "variable-collection-white-grey": "var(--variable-collection-white-grey)",
       },
       fontFamily: {
         a: "var(--a-font-family)",
