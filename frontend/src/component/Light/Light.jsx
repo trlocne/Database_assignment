@@ -404,6 +404,7 @@ const LMSInterface = () => {
   const [pageComment, setPageComment] = useState(1);
   const [commentA, setCommentA] = useState([]);
   const [renderOption, setRenderOption] = useState(1);
+
   const handlePageComment = (event, value) => {
     setPageComment(value);
   };
@@ -435,7 +436,6 @@ const LMSInterface = () => {
   };
   const levelKeys = getLevelKeys(actualItems);
   console.log("actualItems: ", actualItems);
-
   const handleLectureForSection = () => {
     let temp_items = [];
     sections.forEach((s, index) => {
@@ -537,12 +537,18 @@ const LMSInterface = () => {
   };
 
   const handleCompleteLecture = () => {
-    setActualItems((prev) => [
-      ...prev,
-      (actualItems[pickedLecture.Chapter - 1].children[
-        pickedLecture.Number - 1
-      ]["icon"] = <FontAwesomeIcon icon={faCircleCheck} />),
-    ]);
+    // setActualItems((prev) => [
+    //   ...prev,
+    //   (actualItems[pickedLecture.Chapter - 1].children[
+    //     pickedLecture.Number - 1
+    //   ]["icon"] = <FontAwesomeIcon icon={faCircleCheck} />),
+    // ]);
+
+    let tempItemsList = [...actualItems];
+    tempItemsList[pickedLecture.Chapter - 1].children[pickedLecture.Number - 1][
+      "icon"
+    ] = <FontAwesomeIcon icon={faCircleCheck} />;
+    setActualItems(tempItemsList);
   };
 
   const handleRenderOption = () => {
@@ -562,6 +568,7 @@ const LMSInterface = () => {
     else if (renderOption === 2) return renderMaterials();
     else return renderComment();
   };
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-xl font-semibold mb-6">{course.Name}</h1>
@@ -574,7 +581,7 @@ const LMSInterface = () => {
             <div className="flex justify-between">
               <h2 className="text-xl font-semibold">{pickedLecture?.LName}</h2>
               <button
-                className=" py-1 px-4 bg-green-500 rounded-lg text-white hover:bg-green-400"
+                className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
                 onClick={handleCompleteLecture}
               >
                 Complete
