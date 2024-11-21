@@ -4,39 +4,53 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
+import { useNavigate } from 'react-router-dom';
 
-const CourseCard = ({ course }) => (
-  <Card className="mb-4 overflow-hidden">
-    <div className="flex gap-4 p-4">
-      <div className="w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
-        <img 
-          src={course.image || "/api/placeholder/192/128"} 
-          alt={course.title}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="flex-1">
-        <div className="text-sm text-gray-600 mb-1">
-          <span className="bg-gray-100 px-2 py-1 rounded">Photography</span>
+// CourseCard Component
+const CourseCard = ({ course }) => {
+  const navigate = useNavigate();
+
+  const handleViewMore = () => {
+    navigate(`/course/${course.id}`);
+  };``
+
+  return (
+    <Card className="mb-4 overflow-hidden">
+      <div className="flex gap-4 p-4">
+        <div className="w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
+          <img 
+            src={course.image || "/api/placeholder/192/128"} 
+            alt={course.title}
+            className="w-full h-full object-cover"
+          />
         </div>
-        <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-        <div className="text-sm text-gray-600 mb-2">by {course.instructor}</div>
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <span>{course.duration} Weeks</span>
-          <span>{course.students} Students</span>
-          <span>All levels</span>
-          <span>{course.lessons} Lessons</span>
-        </div>
-        <div className="flex justify-between items-center mt-4">
-          <div className="font-semibold">
-            {course.price === 0 ? 'Free' : `$${course.price}`}
+        <div className="flex-1">
+          <div className="text-sm text-gray-600 mb-1">
+            <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
-          <button className="text-blue-600 hover:text-blue-700">View More</button>
+          <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+          <div className="text-sm text-gray-600 mb-2">by {course.instructor}</div>
+          <div className="flex items-center gap-6 text-sm text-gray-600">
+            <span>{course.duration} Weeks</span>
+            <span>{course.students} Students</span>
+            <span>{course.level}</span>
+            <span>{course.lessons} Lessons</span>
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <div className="font-semibold">
+              {course.price === 0 ? 'Free' : `$${course.price}`}
+            </div>
+            <button 
+              onClick={handleViewMore}
+              className="text-blue-600 hover:text-blue-700 transition-colors">
+              View More
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 const FilterSection = ({ title, options, selected, onChange }) => (
   <div className="mb-6">
