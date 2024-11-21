@@ -16,6 +16,12 @@ module.exports = {
         "variable-collection-primary": "var(--variable-collection-primary)",
         "variable-collection-white": "var(--variable-collection-white)",
         "variable-collection-white-grey": "var(--variable-collection-white-grey)",
+        primary: '#030391',
+        green: '#55BE24',
+        grey: '#9D9D9D',
+        lightGrey: "#F5F5F5",
+        red: "#F51A1A",
+        yellow: "#FFAB2D"
       },
       fontFamily: {
         a: "var(--a-font-family)",

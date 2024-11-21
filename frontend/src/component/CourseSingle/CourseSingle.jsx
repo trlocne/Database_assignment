@@ -28,10 +28,10 @@ function CourseDisplay({ course }) {
             className="chapter-header p-[15px] bg-white flex justify-between items-center cursor-pointer"
             onClick={() => toggleChapter(chapterIndex)}
           >
-            <h2 className="text-[18px] font-semibold">
+            <div className="text-[18px] font-semibold">
               {openChapterIndex === chapterIndex ? "▾" : "▸"}{" "}
               {chapter.chapter.title}
-            </h2>
+            </div>
             <span className="text-gray-600">
               {chapter.chapter.lessons} lessons • {chapter.chapter.time} mins
             </span>
