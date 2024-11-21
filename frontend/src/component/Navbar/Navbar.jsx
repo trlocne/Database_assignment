@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import "./index.css";
@@ -17,10 +16,9 @@ export const Navbar = () => {
           </li>
         </ul>
         <div className="font-semibold">
-        <Link to="/loginregister">Login/Register</Link>
+          <Link to="/loginregister">Login/Register</Link>
         </div>
       </nav>
     </div>
   );
 };
-

@@ -79,7 +79,7 @@ const CourseListing = () => {
   const sampleCourses = [
     {
       id: 1,
-      title: 'Create An LMS Website With LearnPress',
+      title: 'Create An LMS Website With LearnPress7',
       instructor: 'Determined Pelikas',
       duration: 2,
       students: 156,
@@ -89,7 +89,7 @@ const CourseListing = () => {
     },
     {
         id: 1,
-        title: 'Create An LMS Website With LearnPress',
+        title: 'Create An LMS Website With LearnPress6',
         instructor: 'Determined Pelikas',
         duration: 2,
         students: 156,
@@ -99,7 +99,7 @@ const CourseListing = () => {
       },
       {
         id: 1,
-        title: 'Create An LMS Website With LearnPress',
+        title: 'Create An LMS Website With LearnPress5',
         instructor: 'Determined Pelikas',
         duration: 2,
         students: 156,
@@ -109,7 +109,58 @@ const CourseListing = () => {
       },
       {
         id: 2,
-        title: 'Create An LMS Website With LearnPress',
+        title: 'Create An LMS Website With LearnPress5',
+        instructor: 'Determined Pelikas',
+        duration: 2,
+        students: 156,
+        lessons: 20,
+        price: 0,
+        image: '/api/placeholder/192/128'
+      },
+      {
+        id: 2,
+        title: 'Create An LMS Website With LearnPress3',
+        instructor: 'Determined Pelikas',
+        duration: 2,
+        students: 156,
+        lessons: 20,
+        price: 0,
+        image: '/api/placeholder/192/128'
+      },
+      {
+        id: 2,
+        title: 'Create An LMS Website With LearnPress2',
+        instructor: 'Determined Pelikas',
+        duration: 2,
+        students: 156,
+        lessons: 20,
+        price: 0,
+        image: '/api/placeholder/192/128'
+      },
+      {
+        id: 2,
+        title: 'Create An LMS Website With LearnPress1',
+        instructor: 'Determined Pelikas',
+        duration: 2,
+        students: 156,
+        lessons: 20,
+        price: 0,
+        image: '/api/placeholder/192/128'
+      },
+
+      {
+        id: 2,
+        title: 'Create An LMS Website With LearnPress2',
+        instructor: 'Determined Pelikas',
+        duration: 2,
+        students: 156,
+        lessons: 20,
+        price: 0,
+        image: '/api/placeholder/192/128'
+      },
+      {
+        id: 2,
+        title: 'Create An LMS Website With LearnPress1',
         instructor: 'Determined Pelikas',
         duration: 2,
         students: 156,

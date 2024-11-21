@@ -7,7 +7,9 @@ const HomeTemplate = () => {
   return (
     <div>
       <Navbar />
-      <Outlet />
+      <div className="mb-11">
+        <Outlet />
+      </div>
       <Footer />
     </div>
   );
