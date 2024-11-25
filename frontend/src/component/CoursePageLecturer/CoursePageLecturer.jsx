@@ -1,16 +1,79 @@
+
+
 import React, { useState, useEffect } from 'react';  
-import { Search, Plus, X } from 'lucide-react';  
+import { Search, Plus, X, Trash2, Upload, Check } from 'lucide-react';  
 import { Card, CardContent } from '../ui/card';  
 import { useNavigate } from 'react-router-dom';  
 
-// ... (keep existing CourseCard and FilterSection components)  
+const MultiSelect = ({ options, selected, onChange, label }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-const CourseCard = ({ course }) => {
+  const toggleOption = (value) => {
+    const newSelected = selected.includes(value)
+      ? selected.filter(item => item !== value)
+      : [...selected, value];
+    onChange(newSelected);
+  };
+
+  const toggleAll = () => {
+    if (selected.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(options.map(opt => opt.value));
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div 
+        className="w-full p-2 border rounded flex justify-between items-center cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="text-gray-700">
+          {selected.length ? `${selected.length} selected` : label}
+        </span>
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-gray-400"
+        >
+          {isOpen ? '▼' : '▲'}
+        </button>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg">
+          <div 
+            className="p-2 hover:bg-gray-50 cursor-pointer border-b flex items-center"
+            onClick={toggleAll}
+          >
+            <div className="w-4 h-4 border rounded mr-2 flex items-center justify-center">
+              {selected.length === options.length && <Check className="w-3 h-3 text-blue-600" />}
+            </div>
+            <span>Select all</span>
+          </div>
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className="p-2 hover:bg-gray-50 cursor-pointer flex items-center"
+              onClick={() => toggleOption(option.value)}
+            >
+              <div className="w-4 h-4 border rounded mr-2 flex items-center justify-center">
+                {selected.includes(option.value) && <Check className="w-3 h-3 text-blue-600" />}
+              </div>
+              <span>{option.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+const CourseCard = ({ course, onDelete }) => {
   const navigate = useNavigate();
 
   const handleViewMore = () => {
     navigate(`/course/${course.id}`);
-  };``
+  };
 
   return (
     <Card className="mb-4 overflow-hidden">
@@ -23,16 +86,25 @@ const CourseCard = ({ course }) => {
           />
         </div>
         <div className="flex-1">
-          <div className="text-sm text-gray-600 mb-1">
-            <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
+          <div className="flex justify-between items-start">
+            <div className="text-sm text-gray-600 mb-1">
+              <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
+            </div>
+            <button 
+              onClick={() => onDelete(course.id)}
+              className="text-red-500 hover:text-red-700 transition-colors"
+              title="Delete course"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
           </div>
           <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
           <div className="text-sm text-gray-600 mb-2">by {course.instructor}</div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
             <span>{course.duration} Weeks</span>
             <span>{course.students} Students</span>
-            <span>{course.level}</span>
             <span>{course.lessons} Lessons</span>
+            <span>{course.level}</span>
           </div>
           <div className="flex justify-between items-center mt-4">
             <div className="font-semibold">
@@ -50,7 +122,26 @@ const CourseCard = ({ course }) => {
   );
 };
 
-// FilterSection Component
+
+const categories = [
+  { value: 'photography', label: 'Photography', count: 15 },
+  { value: 'development', label: 'Development', count: 20 },
+  { value: 'marketing', label: 'Marketing', count: 12 },
+  { value: 'business', label: 'Business', count: 8 }
+];
+
+const instructors = [
+  { value: 'john doe', label: 'John Doe', count: 5 },
+  { value: 'jane smith', label: 'Jane Smith', count: 3 },
+  { value: 'mike johnson', label: 'Mike Johnson', count: 4 }
+];
+
+const levels = [
+  { value: 'beginner', label: 'Beginner', count: 10 },
+  { value: 'intermediate', label: 'Intermediate', count: 8 },
+  { value: 'advanced', label: 'Advanced', count: 6 }
+];
+
 const FilterSection = ({ title, options, selected, onChange }) => (
   <div className="mb-6">
     <h3 className="font-semibold mb-2">{title}</h3>
@@ -76,19 +167,30 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     title: '',  
     instructor: '',  
     category: '',  
-    duration: '',  
-    students: '',  
-    lessons: '',  
-    price: '',  
-    level: '',  
-    image: '/api/placeholder/192/128'  
+    // duration: '',  
+    // students: '0',  
+    // lessons: '',  
+    price: '',
+    level: '',
+    image: '/api/placeholder/192/128',
+    topics: [] 
+
   });  
+
+  const [thumbnailPreview, setThumbnailPreview] = useState('/api/placeholder/192/128');
 
   const categories = [  
     'Photography', 'Development', 'Marketing', 'Business'  
   ];  
 
   const levels = ['Beginner', 'Intermediate', 'Advanced'];  
+
+  const topicOptions = [
+    { label: 'Web Development', value: 'web-dev' },
+    { label: 'Mobile Development', value: 'mobile-dev' },
+    { label: 'UI Design', value: 'ui-design' },
+    { label: 'UX Design', value: 'ux-design' }
+  ];
 
   const handleInputChange = (e) => {  
     const { name, value } = e.target;  
@@ -97,27 +199,58 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       [name]: value  
     }));  
   };  
-  
+
+  const handleTopicsChange = (selected) => {
+    setNewCourse(prev => ({
+      ...prev,
+      topics: selected
+    }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result);
+        setNewCourse(prev => ({
+          ...prev,
+          image: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const handleSubmit = (e) => {  
     e.preventDefault();  
-    // Basic validation  
     if (!newCourse.title || !newCourse.category || !newCourse.instructor) {  
       alert('Please fill in required fields');  
       return;  
     }  
 
-    // Convert numeric fields  
     const courseToAdd = {  
       ...newCourse,  
-      id: Date.now(), // generate unique id  
-      duration: parseInt(newCourse.duration),  
-      students: parseInt(newCourse.students),  
-      lessons: parseInt(newCourse.lessons),  
-      price: parseFloat(newCourse.price)  
+      id: Date.now(),
+       duration: parseInt(newCourse.duration) || 0,  
+       students: parseInt(newCourse.students) || 0,  
+       lessons: parseInt(newCourse.lessons) || 0,  
+      price: parseFloat(newCourse.price) || 0  
     };  
 
     onAddCourse(courseToAdd);  
+    setNewCourse({  // Reset form
+      title: '',  
+      instructor: '',  
+      category: '',  
+      // duration: '',  
+      // students: '0',  
+      // lessons: '',  
+      price: '',  
+      level: '',  
+      image: '/api/placeholder/192/128'  
+    });
     onClose();  
   };  
 
@@ -125,16 +258,35 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
 
   return (  
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">  
-      <div className="bg-white rounded-lg shadow-xl w-96 p-6 relative">  
-        <button   
-          onClick={onClose}   
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"  
-        >  
+      <div className="bg-white rounded-lg shadow-xl w-[800px] p-6 relative">  
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">  
           <X className="w-6 h-6" />  
         </button>  
         <h2 className="text-xl font-semibold mb-4">Add New Course</h2>  
         <form onSubmit={handleSubmit}>  
-          <div className="space-y-4">  
+          <div className="flex gap-6">  
+            {/* Left side - Thumbnail */}
+            <div className="w-64">
+              <div className="flex flex-col items-center p-4 border-2 border-dashed rounded-lg">
+                <img
+                  src={thumbnailPreview}
+                  alt="Course thumbnail"
+                  className="w-full h-48 object-cover rounded mb-4"
+                />
+                <label className="cursor-pointer flex items-center gap-2 text-blue-600 hover:text-blue-700">
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Thumbnail</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              </div>
+            </div>
+            {/* Right side - Form Fields */}
+            <div className="flex-1 space-y-4">
             <input  
               type="text"  
               name="title"  
@@ -177,27 +329,23 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                 <option key={level} value={level}>{level}</option>  
               ))}  
             </select>  
-            <div className="grid grid-cols-2 gap-2">  
-              <input  
+
+             <MultiSelect
+              options={topicOptions}
+              selected={newCourse.topics}
+              onChange={handleTopicsChange}
+              label="Select Topics"
+             />
+             
+              {/* <input  
                 type="number"  
                 name="duration"  
                 value={newCourse.duration}  
                 onChange={handleInputChange}  
-                placeholder="Course Duration (hours)"  
+                placeholder="Duration (weeks)"  
                 className="w-full p-2 border rounded"  
                 min="1"  
               />  
-              <input  
-                type="number"  
-                name="students"  
-                value={newCourse.students}  
-                onChange={handleInputChange}  
-                placeholder="Enrolled Students"  
-                className="w-full p-2 border rounded"  
-                min="0"  
-              />  
-            </div>  
-            <div className="grid grid-cols-2 gap-2">  
               <input  
                 type="number"  
                 name="lessons"  
@@ -206,18 +354,18 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                 placeholder="Number of Lessons"  
                 className="w-full p-2 border rounded"  
                 min="1"  
-              />  
-              <input  
-                type="number"  
-                name="price"  
-                value={newCourse.price}  
-                onChange={handleInputChange}  
-                placeholder="Course Price"  
-                className="w-full p-2 border rounded"  
-                min="0"  
-                step="0.01"  
-              />  
-            </div>  
+              />   */}
+             
+            <input  
+              type="number"  
+              name="price"  
+              value={newCourse.price}  
+              onChange={handleInputChange}  
+              placeholder="Course Price"  
+              className="w-full p-2 border rounded"  
+              min="0"  
+              step="0.01"  
+            />  
             <textarea  
               name="description"  
               value={newCourse.description}  
@@ -225,6 +373,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               placeholder="Course Description"  
               className="w-full p-2 border rounded h-20"  
             />  
+            </div>
           </div>  
           <div className="flex justify-end space-x-2 mt-4">  
             <button  
@@ -245,35 +394,10 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       </div>  
     </div>  
   );  
-};  
+}; 
 
 const CourseListing = () => {  
-  const [courses, setCourses] = useState([]);  
-  const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedInstructors, setSelectedInstructors] = useState([]);
-  const [selectedLevels, setSelectedLevels] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  // ... (keep existing state and other variables)  
-
-  const handleAddCourse = (newCourse) => {  
-    // Add new course to the courses array  
-    setCourses(prevCourses => [  
-      ...prevCourses,   
-      {  
-        ...newCourse,  
-        id: prevCourses.length + 1, // or use a more robust ID generation  
-        rating: 0, // default rating  
-        reviews: 0 // default reviews  
-      }  
-    ]);  
-
-    // Optional: Persist to backend  
-    // api.createCourse(newCourse)  
-  };  
-  const sampleCourses = [
+  const [courses, setCourses] = useState([
     {
       id: 1,
       title: 'Introduction to Photography',
@@ -309,65 +433,62 @@ const CourseListing = () => {
       price: 59.99,
       level: 'Intermediate',
       image: '/api/placeholder/192/128'
-    },
-    // Add more sample courses as needed
-  ];
+    }
+  ]);
+  const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedInstructors, setSelectedInstructors] = useState([]);
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const categories = [
-    { label: 'Photography', value: 'photography', count: 15 },
-    { label: 'Development', value: 'development', count: 12 },
-    { label: 'Marketing', value: 'marketing', count: 8 },
-    { label: 'Business', value: 'business', count: 10 },
-  ];
+  const handleAddCourse = (newCourse) => {  
+    setCourses(prevCourses => [...prevCourses, newCourse]);  
+  };  
 
-  const instructors = [
-    { label: 'John Doe', value: 'john-doe', count: 5 },
-    { label: 'Jane Smith', value: 'jane-smith', count: 4 },
-    { label: 'Mike Johnson', value: 'mike-johnson', count: 3 },
-  ];
-
-  const levels = [
-    { label: 'Beginner', value: 'beginner', count: 12 },
-    { label: 'Intermediate', value: 'intermediate', count: 8 },
-    { label: 'Advanced', value: 'advanced', count: 5 },
-  ];
-
-  // Filter Handlers
-  const handleCategoryChange = (value) => {
-    setSelectedCategories(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1); // Reset to first page when filter changes
+  const handleDeleteCourse = (courseId) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      setCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
+    }
   };
 
-  const handleInstructorChange = (value) => {
-    setSelectedInstructors(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1);
-  };
-
-  const handleLevelChange = (value) => {
-    setSelectedLevels(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1);
-  };
+    // Filter Handlers
+    const handleCategoryChange = (value) => {
+      setSelectedCategories(prev => {
+        const isSelected = prev.includes(value);
+        if (isSelected) {
+          return prev.filter(v => v !== value);
+        }
+        return [...prev, value];
+      });
+      setCurrentPage(1); // Reset to first page when filter changes
+    };
+  
+    const handleInstructorChange = (value) => {
+      setSelectedInstructors(prev => {
+        const isSelected = prev.includes(value);
+        if (isSelected) {
+          return prev.filter(v => v !== value);
+        }
+        return [...prev, value];
+      });
+      setCurrentPage(1);
+    };
+  
+    const handleLevelChange = (value) => {
+      setSelectedLevels(prev => {
+        const isSelected = prev.includes(value);
+        if (isSelected) {
+          return prev.filter(v => v !== value);
+        }
+        return [...prev, value];
+      });
+      setCurrentPage(1);
+    };
 
   // Search and Filter Logic
-  const filteredCourses = sampleCourses.filter(course => {
+  const filteredCourses = courses.filter(course => {
     const searchMatch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -390,145 +511,82 @@ const CourseListing = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentCourses = filteredCourses.slice(startIndex, endIndex);
 
-  // Simulated loading effect
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategories, selectedInstructors, selectedLevels]);
+
+  // Loading effect
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, [searchTerm, selectedCategories, selectedInstructors, selectedLevels, currentPage]);
 
-//   return (  
-//     <div className="container mx-auto px-4 py-8">  
-//       <div className="flex justify-between items-center mb-6">  
-//         <h1 className="text-2xl font-bold">All Courses</h1>  
-//         <button   
-//           onClick={() => setIsAddCourseModalOpen(true)}  
-//           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"  
-//         >  
-//           <Plus className="mr-2 w-5 h-5" />  
-//           Add Course  
-//         </button>  
-//       </div>  
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex gap-8">
+        {/* Filters Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <div className="sticky top-4">
+            <div className="relative mb-6">
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full p-2 pr-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
+            </div>
 
-//       {/* Existing course listing code */}  
-//       {isLoading ? (
-//             <div className="flex justify-center items-center h-64">
-//               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-//             </div>
-//           ) : currentCourses.length > 0 ? (
-//             currentCourses.map((course) => (
-//               <CourseCard key={course.id} course={course} />
-//             ))
-//           ) : (
-//             <div className="text-center py-12">
-//               <p className="text-gray-500">No courses found matching your criteria.</p>
-//             </div>
-//           )}
-
-//           {/* Pagination */}
-//           {filteredCourses.length > 0 && (
-//             <div className="flex justify-center gap-2 mt-8">
-//               <button 
-//                 className="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-//                 disabled={currentPage === 1}
-//                 onClick={() => setCurrentPage(p => p - 1)}
-//               >
-//                 Previous
-//               </button>
-//               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-//                 <button
-//                   key={page}
-//                   className={`px-3 py-1 rounded border transition-colors ${
-//                     currentPage === page 
-//                       ? 'bg-blue-600 text-white'
-//                       : 'hover:bg-gray-50'
-//                   }`}
-//                   onClick={() => setCurrentPage(page)}
-//                 >
-//                   {page}
-//                 </button>
-//               ))}
-//               <button 
-//                 className="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-//                 disabled={currentPage === totalPages}
-//                 onClick={() => setCurrentPage(p => p + 1)}
-//               >
-//                 Next
-//               </button>
-//             </div>
-//           )}
-//       {/* Add Course Modal */}  
-//       <AddCourseModal   
-//         isOpen={isAddCourseModalOpen}  
-//         onClose={() => setIsAddCourseModalOpen(false)}  
-//         onAddCourse={handleAddCourse}  
-//       />  
-//     </div>  
-//   );  
-// };  
-return (
-  <div className="max-w-7xl mx-auto px-4 py-8">
-    <div className="flex gap-8">
-      {/* Filters Sidebar */}
-      <div className="w-64 flex-shrink-0">
-        <div className="sticky top-4">
-          <div className="relative mb-6">
-            <input
-              type="text"
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full p-2 pr-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <FilterSection
+              title="Course Category"
+              options={categories}
+              selected={selectedCategories}
+              onChange={handleCategoryChange}
             />
-            <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
+
+            {/* <FilterSection
+              title="Instructors"
+              options={instructors}
+              selected={selectedInstructors}
+              onChange={handleInstructorChange}
+            /> */}
+
+            <FilterSection
+              title="Level"
+              options={levels}
+              selected={selectedLevels}
+              onChange={handleLevelChange}
+            />
           </div>
-
-          <FilterSection
-            title="Course Category"
-            options={categories}
-            selected={selectedCategories}
-            onChange={handleCategoryChange}
-          />
-
-          <FilterSection
-            title="Instructors"
-            options={instructors}
-            selected={selectedInstructors}
-            onChange={handleInstructorChange}
-          />
-
-          <FilterSection
-            title="Level"
-            options={levels}
-            selected={selectedLevels}
-            onChange={handleLevelChange}
-          />
         </div>
-      </div>
 
-      {/* Course Listings */}
-      <div className="flex-1">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">All Courses</h1>
-          <button   
-          onClick={() => setIsAddCourseModalOpen(true)}  
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"  
-        >  
-          <Plus className="mr-2 w-5 h-5" />  
-          Add Course  
-        </button> 
-        </div>
-        
-        {isLoading ? (
+        {/* Course Listings */}
+        <div className="flex-1">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">All Courses</h1>
+            <button   
+              onClick={() => setIsAddCourseModalOpen(true)}  
+              className="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"  
+            >  
+              <Plus className="mr-2 w-5 h-5" />  
+              Add Course  
+            </button> 
+          </div>
+          
+          {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
           ) : currentCourses.length > 0 ? (
             currentCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+              <CourseCard 
+                key={course.id} 
+                course={course} 
+                onDelete={handleDeleteCourse}
+              />
             ))
           ) : (
             <div className="text-center py-12">
@@ -536,8 +594,8 @@ return (
             </div>
           )}
 
-        {/* Pagination */}
-        {filteredCourses.length > 0 && (
+          {/* Pagination */}
+          {filteredCourses.length > itemsPerPage && (
             <div className="flex justify-center gap-2 mt-8">
               <button 
                 className="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
@@ -568,15 +626,25 @@ return (
               </button>
             </div>
           )}
+
           {/* Add Course Modal */}  
-      <AddCourseModal   
-        isOpen={isAddCourseModalOpen}  
-        onClose={() => setIsAddCourseModalOpen(false)}  
-        onAddCourse={handleAddCourse}  
-      />  
+          <AddCourseModal   
+            isOpen={isAddCourseModalOpen}  
+            onClose={() => setIsAddCourseModalOpen(false)}  
+            onAddCourse={handleAddCourse}  
+          />  
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
+
 export default CourseListing;
+
+
+
+
+
+
+
+
