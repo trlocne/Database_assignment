@@ -5,7 +5,7 @@ import HomeTemplate from "../Templates/HomeTemplate/HomeTemplate.jsx";
 import { CourseSingle } from "../component/CourseSingle/CourseSingle.jsx";
 import CoursePage from "../component/CoursePage/CoursePage.jsx";
 import LoginRegister from "../component/LoginRegister/LoginRegister.jsx";
-import LMSInterface from "../component/Light/Light.jsx";
+import CoursePageLecturer from "../component/CoursePageLecturer/CoursePageLecturer.jsx";
 
 const useRouterCustome = () => {
   const router = useRoutes([
@@ -20,10 +20,6 @@ const useRouterCustome = () => {
         {
           path: "course/:id", // Add this route for individual course details
           element: <CourseSingle />,
-        },
-        {
-          path: "specific-lecture",
-          element: <LMSInterface />,
         },
       ],
     },
@@ -48,6 +44,16 @@ const useRouterCustome = () => {
         {
           index: true,
           element: <LoginRegister />,
+        },
+      ],
+    },
+    {
+      path: "/course1",
+      element: <HomeTemplate />,
+      children: [
+        {
+          index: true,
+          element: <CoursePageLecturer />,
         },
       ],
     },
