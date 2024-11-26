@@ -6,6 +6,7 @@ import { CourseSingle } from "../component/CourseSingle/CourseSingle.jsx";
 import CoursePage from "../component/CoursePage/CoursePage.jsx";
 import LoginRegister from "../component/LoginRegister/LoginRegister.jsx";
 import CoursePageLecturer from "../component/CoursePageLecturer/CoursePageLecturer.jsx";
+import LMSInterface from "../component/Light/Light.jsx";
 
 const useRouterCustome = () => {
   const router = useRoutes([
@@ -20,6 +21,10 @@ const useRouterCustome = () => {
         {
           path: "course/:id", // Add this route for individual course details
           element: <CourseSingle />,
+        },
+        {
+          path: "video",
+          element: <LMSInterface />,
         },
       ],
     },
