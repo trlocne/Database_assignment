@@ -4,10 +4,10 @@ const QuestionList = ({ question }) => {
   console.log("question in question list: ", question);
   const renderMultiChoice = (option) => {
     return (
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {option.map((o, idx) => {
           return (
-            <div className="p-2 border hover:border-blue-300">
+            <div className="p-2 border rounded-lg hover:border-blue-300 cursor-pointer">
               <span>
                 {String.fromCharCode(idx + 65)}. {o}
               </span>
@@ -21,10 +21,9 @@ const QuestionList = ({ question }) => {
     return question.map((q) => {
       console.log("q: ", q);
       return (
-        <div>
-          <div className="max-h-[30px] border border-blue-400">
+        <div className="mb-3">
+          <div className="max-h-[30px] mb-2">
             <h2 className="font-bold">{q.text}</h2>
-            <span>(10 điểm):</span>
           </div>
           {q.type === "multiple_choice" ? (
             renderMultiChoice(q.options || [])

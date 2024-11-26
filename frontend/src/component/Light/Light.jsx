@@ -81,6 +81,13 @@ const LMSInterface = () => {
       Time_of_lecture: 30,
     },
     {
+      Chapter: 1,
+      LName: "demo",
+      Number: 3,
+      Time_of_lecture: 2,
+      isQuiz: true,
+    },
+    {
       Chapter: 2,
       Number: 1,
       LName: "Variables and Data Types - Lecture 1",
@@ -426,12 +433,29 @@ const LMSInterface = () => {
   const [isQuizModalVisible, setIsQuizModalVisible] = useState(false);
   const [quizForm] = Form.useForm();
   const [questionBank, setQuestionBank] = useState([
-    { id: 1, text: "What is a variable?", type: "multiple_choice" },
-    { id: 2, text: "Explain what is a loop?", type: "essay" },
+    {
+      id: 1,
+      text: "What is a variable?",
+      type: "multiple_choice",
+      sampleAnswer: null,
+      options: ["s", "r", "e", "r"],
+      correctOption: 0,
+    },
+    {
+      id: 2,
+      text: "What is a variable?",
+      type: "multiple_choice",
+      sampleAnswer: null,
+      options: ["s", "r", "e", "r"],
+      correctOption: 0,
+    },
     {
       id: 3,
-      text: "What is the difference between let and const?",
+      text: "What is a variable?",
       type: "multiple_choice",
+      sampleAnswer: null,
+      options: ["s", "r", "e", "r"],
+      correctOption: 0,
     },
     // Add more sample questions as needed
   ]);
