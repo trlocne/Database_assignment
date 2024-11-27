@@ -1016,6 +1016,21 @@ const LMSInterface = () => {
     const seconds = date?.getSeconds().toString().padStart(2, "0");
     return `${hours}:${minutes}:${seconds}`;
   };
+  const renderContentOfTakingQuizModal = () => {
+    const content = takingQuiz
+      ? "Bạn đang thực hiện bài Quiz !!!"
+      : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
+      Thời lượng: ${pickedLecture?.Time_of_lecture} phút
+      Time: ${renderHomeWorkTime(currentTime)} - ${renderHomeWorkTime(
+          futureTime
+        )}`;
+    return content.split("\n").map((line, index) => (
+      <>
+        {line}
+        <br />
+      </>
+    ));
+  };
   return (
     <>
       {/* modal để xác nhận lại xem người dùng có muốn làm quiz hay không */}
@@ -1025,11 +1040,7 @@ const LMSInterface = () => {
         onOk={() => handleOkTakingQuizModal()}
         onCancel={handleCanCelTakingQuizModal}
       >
-        Bạn có chắc chắn muốn thực hiện bài Quiz ? <br />
-        Thời lượng: {pickedLecture?.Time_of_lecture} phút
-        <br />
-        Time: {renderHomeWorkTime(currentTime)} -{" "}
-        {renderHomeWorkTime(futureTime)}
+        {renderContentOfTakingQuizModal()}
       </Modal>
       <Modal
         title={<div className="text-xl font-bold">Thông tin bài giảng</div>}
