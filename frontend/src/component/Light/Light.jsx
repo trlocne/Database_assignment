@@ -64,7 +64,8 @@ const LMSInterface = () => {
     Thumbnail: "",
     Teacher: "Ronaldo",
   });
-
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [futureTime, setFutureTime] = useState(null);
   const [lectures, setLectures] = useState([
     {
       Chapter: 1,
@@ -84,7 +85,7 @@ const LMSInterface = () => {
       Chapter: 1,
       LName: "demo",
       Number: 3,
-      Time_of_lecture: 2,
+      Time_of_lecture: 13,
       isQuiz: true,
     },
     {
@@ -459,6 +460,8 @@ const LMSInterface = () => {
     },
     // Add more sample questions as needed
   ]);
+  const [takingQuiz, setTakingQuiz] = useState(false);
+  const [isTakingQuizModalOpen, setIsTakingQuizModalOpen] = useState(false);
   console.log("questionbank: ", questionBank);
   // Đây là ví dụ question
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -485,6 +488,12 @@ const LMSInterface = () => {
       setCorrectOption(0);
     });
   };
+  useEffect(() => {
+    const future = new Date(
+      currentTime.getTime() + pickedLecture?.Time_of_lecture * 60 * 1000
+    ); // Thêm timeQuantity giây
+    setFutureTime(future);
+  }, [currentTime, pickedLecture?.isQuiz]);
 
   useEffect(() => {
     let start = 3 * (pageComment - 1);
@@ -497,6 +506,11 @@ const LMSInterface = () => {
   }, []);
 
   useEffect(() => {
+    if (pickedLecture?.isQuiz) setIsTakingQuizModalOpen(true);
+    console.log("bạn vào useEffect cho pickedLecture");
+  }, [pickedLecture]);
+
+  useEffect(() => {
     if (selectedQuestion) {
       questionForm.setFieldsValue({
         questionText: selectedQuestion.text,
@@ -507,6 +521,16 @@ const LMSInterface = () => {
       setCorrectOption(selectedQuestion.correctOption || 0);
     }
   }, [selectedQuestion]);
+  const showTakingQuizModal = () => {
+    setIsTakingQuizModalOpen(true);
+  };
+  const handleOkTakingQuizModal = () => {
+    setIsTakingQuizModalOpen(false);
+    setTakingQuiz(true);
+  };
+  const handleCanCelTakingQuizModal = () => {
+    setIsTakingQuizModalOpen(false);
+  };
   const showRemoveQuizModal = () => {
     setIsRemoveQuizModalOpen(true);
   };
@@ -986,8 +1010,27 @@ const LMSInterface = () => {
     </Modal>
   );
   console.log("pickedLecture: ", pickedLecture);
+  const renderHomeWorkTime = (date) => {
+    const hours = date?.getHours().toString().padStart(2, "0");
+    const minutes = date?.getMinutes().toString().padStart(2, "0");
+    const seconds = date?.getSeconds().toString().padStart(2, "0");
+    return `${hours}:${minutes}:${seconds}`;
+  };
   return (
     <>
+      {/* modal để xác nhận lại xem người dùng có muốn làm quiz hay không */}
+      <Modal
+        title="Thực hiện Quiz"
+        open={isTakingQuizModalOpen}
+        onOk={() => handleOkTakingQuizModal()}
+        onCancel={handleCanCelTakingQuizModal}
+      >
+        Bạn có chắc chắn muốn thực hiện bài Quiz ? <br />
+        Thời lượng: {pickedLecture?.Time_of_lecture} phút
+        <br />
+        Time: {renderHomeWorkTime(currentTime)} -{" "}
+        {renderHomeWorkTime(futureTime)}
+      </Modal>
       <Modal
         title={<div className="text-xl font-bold">Thông tin bài giảng</div>}
         open={isModalVisible}
@@ -1036,17 +1079,28 @@ const LMSInterface = () => {
 
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2">
-            {pickedLecture?.isQuiz ? (
-              <QuestionList question={questionBank} />
+            {takingQuiz ? (
+              <QuestionList
+                question={questionBank}
+                quizSection={pickedLecture}
+              />
             ) : (
               <VideoPlayer />
             )}
 
             <div className="mt-4">
-              <div className="flex justify-between">
-                <h2 className="text-xl font-semibold">
-                  {pickedLecture?.LName}
-                </h2>
+              <div
+                className={`flex ${
+                  pickedLecture?.isQuiz ? "justify-end" : "justify-between"
+                }`}
+              >
+                {pickedLecture?.isQuiz ? (
+                  ""
+                ) : (
+                  <h2 className="text-xl font-semibold">
+                    {pickedLecture?.LName}
+                  </h2>
+                )}
                 <button
                   className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
                   onClick={handleCompleteLecture}
