@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Play, RotateCcw, Settings, Maximize2 } from "lucide-react";
 import {
   AppstoreOutlined,
@@ -6,11 +6,23 @@ import {
   SettingOutlined,
   PlusCircleOutlined,
 } from "@ant-design/icons";
-import { Menu, Modal, Input, Form, Dropdown, Select, Button, Radio } from "antd";
+import {
+  Menu,
+  Modal,
+  Input,
+  Form,
+  Dropdown,
+  Select,
+  Button,
+  Radio,
+} from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle, faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { CommentItem } from "../CommentItem/index.jsx";
 import { Pagination } from "@mui/material";
+import { NotificationContext } from "../../App.jsx";
+import QuestionList from "../QuestionList/QuestionList.jsx";
 const VideoPlayer = () => {
   const [currentTime, setCurrentTime] = useState("05:42");
   const [duration, setDuration] = useState("08:23");
@@ -43,6 +55,7 @@ const VideoPlayer = () => {
 };
 
 const LMSInterface = () => {
+  const { handleNotification } = useContext(NotificationContext);
   const [course, setCourse] = useState({
     Name: "Intro to Programming",
     title: "Beginner Programming",
@@ -51,7 +64,8 @@ const LMSInterface = () => {
     Thumbnail: "",
     Teacher: "Ronaldo",
   });
-
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [futureTime, setFutureTime] = useState(null);
   const [lectures, setLectures] = useState([
     {
       Chapter: 1,
@@ -66,6 +80,13 @@ const LMSInterface = () => {
       LName: "Introduction to Programming - Lecture 2",
       Video: "intro_programming_2.mp4",
       Time_of_lecture: 30,
+    },
+    {
+      Chapter: 1,
+      LName: "demo",
+      Number: 3,
+      Time_of_lecture: 13,
+      isQuiz: true,
     },
     {
       Chapter: 2,
@@ -413,33 +434,66 @@ const LMSInterface = () => {
   const [isQuizModalVisible, setIsQuizModalVisible] = useState(false);
   const [quizForm] = Form.useForm();
   const [questionBank, setQuestionBank] = useState([
-    { id: 1, text: "What is a variable?", type: "multiple_choice" },
-    { id: 2, text: "Explain what is a loop?", type: "essay" },
-    { id: 3, text: "What is the difference between let and const?", type: "multiple_choice" },
+    {
+      id: 1,
+      text: "What is a variable?",
+      type: "multiple_choice",
+      sampleAnswer: null,
+      options: ["s", "r", "e", "r"],
+      correctOption: 0,
+    },
+    {
+      id: 2,
+      text: "What is a variable?",
+      type: "multiple_choice",
+      sampleAnswer: null,
+      options: ["s", "r", "e", "r"],
+      correctOption: 0,
+    },
+    {
+      id: 3,
+      text: "What is a variable?",
+      type: "multiple_choice",
+      sampleAnswer: null,
+      options: ["s", "r", "e", "r"],
+      correctOption: 0,
+    },
     // Add more sample questions as needed
   ]);
-    // Đây là ví dụ question 
+  const [takingQuiz, setTakingQuiz] = useState(false);
+  const [isTakingQuizModalOpen, setIsTakingQuizModalOpen] = useState(false);
+  console.log("questionbank: ", questionBank);
+  // Đây là ví dụ question
   const [selectedQuestion, setSelectedQuestion] = useState(null);
-  const [questionType, setQuestionType] = useState('multiple_choice');
+  const [questionType, setQuestionType] = useState("multiple_choice");
   const [questionForm] = Form.useForm();
   const [correctOption, setCorrectOption] = useState(0);
-
+  const [isRemoveQuizModalOpen, setIsRemoveQuizModalOpen] = useState(false);
   const handleAddNewQuestion = () => {
-    questionForm.validateFields().then(values => {
+    questionForm.validateFields().then((values) => {
       const newQuestion = {
         id: questionBank.length + 1,
         text: values.questionText,
         type: values.questionType,
-        options: values.questionType === 'multiple_choice' ? values.options : null,
-        correctOption: values.questionType === 'multiple_choice' ? correctOption : null,
-        sampleAnswer: values.questionType === 'essay' ? values.sampleAnswer : null
+        options:
+          values.questionType === "multiple_choice" ? values.options : null,
+        correctOption:
+          values.questionType === "multiple_choice" ? correctOption : null,
+        sampleAnswer:
+          values.questionType === "essay" ? values.sampleAnswer : null,
       };
-      
-      setQuestionBank(prev => [...prev, newQuestion]);
+
+      setQuestionBank((prev) => [...prev, newQuestion]);
       questionForm.resetFields();
       setCorrectOption(0);
     });
   };
+  useEffect(() => {
+    const future = new Date(
+      currentTime.getTime() + pickedLecture?.Time_of_lecture * 60 * 1000
+    ); // Thêm timeQuantity giây
+    setFutureTime(future);
+  }, [currentTime, pickedLecture?.isQuiz]);
 
   useEffect(() => {
     let start = 3 * (pageComment - 1);
@@ -452,16 +506,41 @@ const LMSInterface = () => {
   }, []);
 
   useEffect(() => {
+    if (pickedLecture?.isQuiz) setIsTakingQuizModalOpen(true);
+    console.log("bạn vào useEffect cho pickedLecture");
+  }, [pickedLecture]);
+
+  useEffect(() => {
     if (selectedQuestion) {
       questionForm.setFieldsValue({
         questionText: selectedQuestion.text,
         questionType: selectedQuestion.type,
-        options: selectedQuestion.options || ['', '', '', ''],
-        sampleAnswer: selectedQuestion.sampleAnswer || ''
+        options: selectedQuestion.options || ["", "", "", ""],
+        sampleAnswer: selectedQuestion.sampleAnswer || "",
       });
       setCorrectOption(selectedQuestion.correctOption || 0);
     }
   }, [selectedQuestion]);
+  const showTakingQuizModal = () => {
+    setIsTakingQuizModalOpen(true);
+  };
+  const handleOkTakingQuizModal = () => {
+    setIsTakingQuizModalOpen(false);
+    setTakingQuiz(true);
+  };
+  const handleCanCelTakingQuizModal = () => {
+    setIsTakingQuizModalOpen(false);
+  };
+  const showRemoveQuizModal = () => {
+    setIsRemoveQuizModalOpen(true);
+  };
+  const handleOk = (q) => {
+    setIsRemoveQuizModalOpen(false);
+    handleRemoveQuiz(q);
+  };
+  const handleCancel = () => {
+    setIsRemoveQuizModalOpen(false);
+  };
 
   const getLevelKeys = (items1) => {
     const key = {};
@@ -483,25 +562,25 @@ const LMSInterface = () => {
   const getDropdownMenu = (section) => ({
     items: [
       {
-        key: '1',
-        label: 'Add Lecture',
+        key: "1",
+        label: "Add Lecture",
         onClick: () => {
           setSelectedSection(section);
           setIsModalVisible(true);
           console.log("Opening lecture modal");
-        }
+        },
       },
       {
-        key: '2',
-        label: 'Add Quiz',
+        key: "2",
+        label: "Add Quiz",
         onClick: () => {
           console.log("Opening quiz modal");
           setSelectedSection(section);
           setIsQuizModalVisible(true);
           console.log("Quiz modal state:", true);
-        }
+        },
       },
-    ]
+    ],
   });
   const handleLectureForSection = () => {
     let temp_items = [];
@@ -511,11 +590,8 @@ const LMSInterface = () => {
       tempObject["label"] = (
         <div className="flex items-center justify-between">
           <span>{s.Title}</span>
-          <Dropdown
-            menu={getDropdownMenu(s)}
-            trigger={['click']}
-          >
-            <PlusCircleOutlined 
+          <Dropdown menu={getDropdownMenu(s)} trigger={["click"]}>
+            <PlusCircleOutlined
               onClick={(e) => e.stopPropagation()}
               className="ml-2 text-blue-500 hover:text-blue-700"
             />
@@ -655,27 +731,27 @@ const LMSInterface = () => {
   };
 
   const handleModalOk = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then((values) => {
       // Create new lecture object using selectedSection's Chapter
       const newLecture = {
         Chapter: selectedSection.Chapter, // Use the chapter from selectedSection
         Number: parseInt(values.Number),
         LName: values.LName,
         Video: values.Video,
-        Time_of_lecture: parseInt(values.Time_of_lecture)
+        Time_of_lecture: parseInt(values.Time_of_lecture),
       };
 
       // Add new lecture to lectures array
-      setLectures(prevLectures => [...prevLectures, newLecture]);
+      setLectures((prevLectures) => [...prevLectures, newLecture]);
 
       // Update the menu items to show new lecture
       const tempItems = [...actualItems];
       const chapterIndex = newLecture.Chapter - 1;
-      
+
       const newMenuItem = {
         key: `${newLecture.Chapter}${newLecture.Number}`,
         label: newLecture.LName,
-        icon: <FontAwesomeIcon icon={faCircle} />
+        icon: <FontAwesomeIcon icon={faCircle} />,
       };
 
       // Add to existing chapter's children
@@ -699,15 +775,15 @@ const LMSInterface = () => {
   };
 
   const handleSectionModalOk = () => {
-    sectionForm.validateFields().then(values => {
+    sectionForm.validateFields().then((values) => {
       const newSection = {
         Chapter: parseInt(values.ChapterNumber),
         Title: values.Title,
         Amount_Of_Time: parseInt(values.Amount_Of_Time),
-        Number_Of_Lecture: parseInt(values.Number_Of_Lecture)
+        Number_Of_Lecture: parseInt(values.Number_Of_Lecture),
       };
 
-      setSections(prev => [...prev, newSection]);
+      setSections((prev) => [...prev, newSection]);
 
       // Add new section to menu
       const newMenuItem = {
@@ -715,17 +791,17 @@ const LMSInterface = () => {
         label: (
           <div className="flex items-center justify-between">
             <span>{newSection.Title}</span>
-            <PlusCircleOutlined 
+            <PlusCircleOutlined
               onClick={(e) => showModal(newSection, e)}
               className="ml-2 text-blue-500 hover:text-blue-700"
             />
           </div>
         ),
-        children: []
+        children: [],
       };
 
-      setActualItems(prev => [...prev, newMenuItem]);
-      
+      setActualItems((prev) => [...prev, newMenuItem]);
+
       setIsSectionModalVisible(false);
       sectionForm.resetFields();
     });
@@ -737,26 +813,28 @@ const LMSInterface = () => {
   };
 
   const handleQuizModalOk = () => {
-    quizForm.validateFields().then(values => {
+    quizForm.validateFields().then((values) => {
       const newQuiz = {
         Chapter: selectedSection.Chapter,
-        Number: lectures.filter(l => l.Chapter === selectedSection.Chapter).length + 1,
+        Number:
+          lectures.filter((l) => l.Chapter === selectedSection.Chapter).length +
+          1,
         LName: values.title,
         isQuiz: true,
-        Time_of_lecture: parseInt(values.duration)
+        Time_of_lecture: parseInt(values.duration),
       };
 
       // Add new quiz to lectures array
-      setLectures(prevLectures => [...prevLectures, newQuiz]);
+      setLectures((prevLectures) => [...prevLectures, newQuiz]);
 
       // Update the menu items
       const tempItems = [...actualItems];
       const chapterIndex = newQuiz.Chapter - 1;
-      
+
       const newMenuItem = {
         key: `${newQuiz.Chapter}${newQuiz.Number}`,
         label: `Quiz: ${newQuiz.LName}`,
-        icon: <FontAwesomeIcon icon={faCircle} />
+        icon: <FontAwesomeIcon icon={faCircle} />,
       };
 
       if (tempItems[chapterIndex]) {
@@ -774,6 +852,13 @@ const LMSInterface = () => {
     setIsQuizModalVisible(false);
   };
 
+  const handleRemoveQuiz = (q) => {
+    let newQuestionBank = questionBank.filter((q_) => q_.id !== q.id);
+    setQuestionBank(newQuestionBank);
+    setSelectedQuestion({});
+    handleNotification("Quiz được xóa thành công", "success");
+  };
+
   const renderQuizModal = () => (
     <Modal
       title={<div className="text-xl font-bold">Create Quiz</div>}
@@ -787,18 +872,38 @@ const LMSInterface = () => {
         <div className="w-1/3 border-r pr-4">
           <h3 className="text-lg font-semibold mb-4">Question Bank</h3>
           <div className="h-[calc(100%-2rem)] overflow-y-auto">
-            {questionBank.map(question => (
+            {questionBank.map((question) => (
               <div
                 key={question.id}
-                className={`p-3 border mb-2 rounded cursor-pointer hover:bg-gray-50 ${
-                  selectedQuestion?.id === question.id ? 'bg-blue-50 border-blue-500' : ''
+                className={`p-3 border mb-2 rounded cursor-pointer flex justify-between items-center hover:bg-gray-50 ${
+                  selectedQuestion?.id === question.id
+                    ? "bg-blue-50 border-blue-500"
+                    : ""
                 }`}
                 onClick={() => setSelectedQuestion(question)}
               >
-                <div className="font-medium">{question.text}</div>
-                <div className="text-sm text-gray-500">Type: {question.type}</div>
+                <div>
+                  <div className="font-medium">{question.text}</div>
+                  <div className="text-sm text-gray-500">
+                    Type: {question.type}
+                  </div>
+                </div>
+                <div onClick={showRemoveQuizModal}>
+                  <FontAwesomeIcon
+                    icon={faTrashCan}
+                    className="hover:text-red duration-200"
+                  />
+                </div>
               </div>
             ))}
+            <Modal
+              title="Basic Modal"
+              open={isRemoveQuizModalOpen}
+              onOk={() => handleOk(selectedQuestion)}
+              onCancel={handleCancel}
+            >
+              Bạn có chắc muốn xóa câu hỏi này !
+            </Modal>
           </div>
         </div>
 
@@ -812,9 +917,14 @@ const LMSInterface = () => {
                 <Form.Item
                   name="questionText"
                   label="Question"
-                  rules={[{ required: true, message: 'Please enter your question' }]}
+                  rules={[
+                    { required: true, message: "Please enter your question" },
+                  ]}
                 >
-                  <Input.TextArea rows={3} placeholder="Enter your question here" />
+                  <Input.TextArea
+                    rows={3}
+                    placeholder="Enter your question here"
+                  />
                 </Form.Item>
 
                 <Form.Item
@@ -823,13 +933,15 @@ const LMSInterface = () => {
                   initialValue="multiple_choice"
                 >
                   <Select onChange={(value) => setQuestionType(value)}>
-                    <Select.Option value="multiple_choice">Multiple Choice</Select.Option>
+                    <Select.Option value="multiple_choice">
+                      Multiple Choice
+                    </Select.Option>
                     <Select.Option value="essay">Essay</Select.Option>
                   </Select>
                 </Form.Item>
 
-                {questionType === 'multiple_choice' ? (
-                  <Form.List name="options" initialValue={['', '', '', '']}>
+                {questionType === "multiple_choice" ? (
+                  <Form.List name="options" initialValue={["", "", "", ""]}>
                     {(fields) => (
                       <div className="space-y-2">
                         {fields.map((field, index) => (
@@ -839,11 +951,14 @@ const LMSInterface = () => {
                             label={`Option ${index + 1}`}
                           >
                             <div className="flex items-center gap-2">
-                              <Radio 
-                                checked={correctOption === index} 
-                                onChange={() => setCorrectOption(index)} 
+                              <Radio
+                                checked={correctOption === index}
+                                onChange={() => setCorrectOption(index)}
                               />
-                              <Input className="flex-1" placeholder={`Enter option ${index + 1}`} />
+                              <Input
+                                className="flex-1"
+                                placeholder={`Enter option ${index + 1}`}
+                              />
                             </div>
                           </Form.Item>
                         ))}
@@ -851,10 +966,7 @@ const LMSInterface = () => {
                     )}
                   </Form.List>
                 ) : (
-                  <Form.Item
-                    name="sampleAnswer"
-                    label="Sample Answer"
-                  >
+                  <Form.Item name="sampleAnswer" label="Sample Answer">
                     <Input.TextArea
                       rows={4}
                       placeholder="Enter a sample answer or solution"
@@ -862,7 +974,7 @@ const LMSInterface = () => {
                   </Form.Item>
                 )}
 
-                <Button 
+                <Button
                   type="primary"
                   onClick={handleAddNewQuestion}
                   className="mt-4 bg-blue-500 hover:bg-blue-600"
@@ -877,17 +989,17 @@ const LMSInterface = () => {
           <div className="h-1/3 pt-4">
             <h3 className="text-lg font-semibold mb-4">Quiz Settings</h3>
             <Form form={quizForm} layout="vertical">
-              <Form.Item 
-                name="title" 
-                label="Quiz Title" 
-                rules={[{ required: true, message: 'Please enter quiz title' }]}
+              <Form.Item
+                name="title"
+                label="Quiz Title"
+                rules={[{ required: true, message: "Please enter quiz title" }]}
               >
                 <Input placeholder="Enter quiz title" />
               </Form.Item>
-              <Form.Item 
-                name="duration" 
-                label="Duration (minutes)" 
-                rules={[{ required: true, message: 'Please enter duration' }]}
+              <Form.Item
+                name="duration"
+                label="Duration (minutes)"
+                rules={[{ required: true, message: "Please enter duration" }]}
               >
                 <Input type="number" placeholder="Enter duration in minutes" />
               </Form.Item>
@@ -897,9 +1009,39 @@ const LMSInterface = () => {
       </div>
     </Modal>
   );
-
+  console.log("pickedLecture: ", pickedLecture);
+  const renderHomeWorkTime = (date) => {
+    const hours = date?.getHours().toString().padStart(2, "0");
+    const minutes = date?.getMinutes().toString().padStart(2, "0");
+    const seconds = date?.getSeconds().toString().padStart(2, "0");
+    return `${hours}:${minutes}:${seconds}`;
+  };
+  const renderContentOfTakingQuizModal = () => {
+    const content = takingQuiz
+      ? "Bạn đang thực hiện bài Quiz !!!"
+      : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
+      Thời lượng: ${pickedLecture?.Time_of_lecture} phút
+      Time: ${renderHomeWorkTime(currentTime)} - ${renderHomeWorkTime(
+          futureTime
+        )}`;
+    return content.split("\n").map((line, index) => (
+      <>
+        {line}
+        <br />
+      </>
+    ));
+  };
   return (
     <>
+      {/* modal để xác nhận lại xem người dùng có muốn làm quiz hay không */}
+      <Modal
+        title="Thực hiện Quiz"
+        open={isTakingQuizModalOpen}
+        onOk={() => handleOkTakingQuizModal()}
+        onCancel={handleCanCelTakingQuizModal}
+      >
+        {renderContentOfTakingQuizModal()}
+      </Modal>
       <Modal
         title={<div className="text-xl font-bold">Thông tin bài giảng</div>}
         open={isModalVisible}
@@ -917,17 +1059,11 @@ const LMSInterface = () => {
           </div>
           <div className="flex-1">
             <Form form={form} layout="vertical">
-              <Form.Item name="Number" label="Số thứ tự">
-                <Input type="number" />
-              </Form.Item>
               <Form.Item name="LName" label="Tên bài giảng">
                 <Input />
               </Form.Item>
               <Form.Item name="Video" label="Video">
                 <Input />
-              </Form.Item>
-              <Form.Item name="Time_of_lecture" label="Thời gian bài giảng">
-                <Input type="number" />
               </Form.Item>
             </Form>
           </div>
@@ -941,17 +1077,8 @@ const LMSInterface = () => {
         onCancel={handleSectionModalCancel}
       >
         <Form form={sectionForm} layout="vertical">
-          <Form.Item name="ChapterNumber" label="Chương số" rules={[{ required: true }]}>
-            <Input type="number" />
-          </Form.Item>
           <Form.Item name="Title" label="Tiêu đề" rules={[{ required: true }]}>
             <Input />
-          </Form.Item>
-          <Form.Item name="Amount_Of_Time" label="Thời lượng" rules={[{ required: true }]}>
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item name="Number_Of_Lecture" label="Số bài giảng" rules={[{ required: true }]}>
-            <Input type="number" />
           </Form.Item>
         </Form>
       </Modal>
@@ -963,11 +1090,28 @@ const LMSInterface = () => {
 
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2">
-            <VideoPlayer />
+            {takingQuiz ? (
+              <QuestionList
+                question={questionBank}
+                quizSection={pickedLecture}
+              />
+            ) : (
+              <VideoPlayer />
+            )}
 
             <div className="mt-4">
-              <div className="flex justify-between">
-                <h2 className="text-xl font-semibold">{pickedLecture?.LName}</h2>
+              <div
+                className={`flex ${
+                  pickedLecture?.isQuiz ? "justify-end" : "justify-between"
+                }`}
+              >
+                {pickedLecture?.isQuiz ? (
+                  ""
+                ) : (
+                  <h2 className="text-xl font-semibold">
+                    {pickedLecture?.LName}
+                  </h2>
+                )}
                 <button
                   className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
                   onClick={handleCompleteLecture}
@@ -1011,7 +1155,7 @@ const LMSInterface = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold">MODULE</h3>
-                <button 
+                <button
                   onClick={showSectionModal}
                   className="p-1 text-blue-500 hover:text-blue-700"
                 >
