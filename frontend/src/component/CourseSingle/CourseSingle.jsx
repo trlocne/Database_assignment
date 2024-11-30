@@ -100,7 +100,7 @@ export const CourseSingle = () => {
         } else {
             alert("Please enter a comment."); // Thông báo nếu không có bình luận
         }
-    };
+    }
     useEffect(() => {
         let start = 3 * (pageComment - 1);
         let end = Math.min(3 * pageComment, comment.length);
