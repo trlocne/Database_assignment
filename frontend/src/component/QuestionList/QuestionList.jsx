@@ -39,7 +39,7 @@ const QuestionList = ({ question, quizSection }) => {
       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {option.map((o, idx) => {
           return (
-            <div className="p-2 border rounded-lg hover:border-blue-300 cursor-pointer">
+            <div class="p-2 border rounded-lg hover:border-blue-300 cursor-pointer">
               <span>
                 {String.fromCharCode(idx + 65)}. {o}
               </span>

@@ -524,9 +524,11 @@ const LMSInterface = () => {
   const showTakingQuizModal = () => {
     setIsTakingQuizModalOpen(true);
   };
+  console.log("takingquiz: ", takingQuiz);
   const handleOkTakingQuizModal = () => {
     setIsTakingQuizModalOpen(false);
     setTakingQuiz(true);
+    console.log("bạn vào handleOkTakingQuizModal");
   };
   const handleCanCelTakingQuizModal = () => {
     setIsTakingQuizModalOpen(false);
@@ -678,6 +680,16 @@ const LMSInterface = () => {
   };
 
   const handlePickLecture = (infor) => {
+    // setIsTakingQuizModalOpen(true);
+    console.log("taking Quiz, pickedLecture: ", takingQuiz, pickedLecture);
+    if (takingQuiz && pickedLecture.isQuiz) {
+      setIsTakingQuizModalOpen(true);
+      return;
+    }
+    if (takingQuiz && pickedLecture.isQuiz === undefined) {
+      console.log("bạn vào handlepick");
+      return;
+    }
     console.log("infor: ", infor);
     const key = Number(infor.key);
     const chapter = Math.floor(key / 10);
@@ -707,6 +719,7 @@ const LMSInterface = () => {
   };
 
   const handleRenderOption = () => {
+    if (pickedLecture.isQuiz) return;
     if (renderOption === 1)
       return (
         <div className="mt-4">
@@ -1037,7 +1050,7 @@ const LMSInterface = () => {
       <Modal
         title="Thực hiện Quiz"
         open={isTakingQuizModalOpen}
-        onOk={() => handleOkTakingQuizModal()}
+        onOk={handleOkTakingQuizModal}
         onCancel={handleCanCelTakingQuizModal}
       >
         {renderContentOfTakingQuizModal()}
@@ -1125,28 +1138,32 @@ const LMSInterface = () => {
                 <span className="text-gray-600">Sr. Product Designer</span>
               </div>
 
-              <div className="mt-4 border-t pt-4">
-                <div className="flex justify-around">
-                  <button
-                    className="font-medium hover:text-blue-500 duration-200"
-                    onClick={() => setRenderOption(1)}
-                  >
-                    Comment
-                  </button>
-                  <button
-                    className="font-medium hover:text-blue-500 duration-200"
-                    onClick={() => setRenderOption(2)}
-                  >
-                    Material
-                  </button>
-                  <button
-                    className="font-medium hover:text-blue-500 duration-200"
-                    onClick={() => setRenderOption(3)}
-                  >
-                    List Comment
-                  </button>
+              {pickedLecture.isQuiz !== undefined ? (
+                ""
+              ) : (
+                <div className="mt-4 border-t pt-4">
+                  <div className="flex justify-around">
+                    <button
+                      className="font-medium hover:text-blue-500 duration-200"
+                      onClick={() => setRenderOption(1)}
+                    >
+                      Comment
+                    </button>
+                    <button
+                      className="font-medium hover:text-blue-500 duration-200"
+                      onClick={() => setRenderOption(2)}
+                    >
+                      Material
+                    </button>
+                    <button
+                      className="font-medium hover:text-blue-500 duration-200"
+                      onClick={() => setRenderOption(3)}
+                    >
+                      List Comment
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               {handleRenderOption()}
             </div>
           </div>
