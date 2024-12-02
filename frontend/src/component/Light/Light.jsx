@@ -626,18 +626,20 @@ const LMSInterface = () => {
           src="https://drive.google.com/file/d/10wKFljWZ68W9-of3y6CGJg1uBVvbBvu0/preview"
           width="640"
           height="480"
-          // allow="autoplay"
+          allow="autoplay"
         ></iframe>
         <iframe
           src="https://drive.google.com/file/d/10wKFljWZ68W9-of3y6CGJg1uBVvbBvu0/preview"
           width="640"
           height="480"
-          // allow="autoplay"
+          allow="autoplay"
         ></iframe>
       </div>
     );
   };
-
+  const handlePageComment = (event, value) => {
+    setPageComment(value);
+  };
   const renderComment = () => {
     return (
       <div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
