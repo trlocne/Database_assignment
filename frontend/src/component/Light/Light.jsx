@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Play, RotateCcw, Settings, Maximize2 } from "lucide-react";
+
+import { useSelector, useDispatch } from "react-redux";
 import {
-  AppstoreOutlined,
-  MailOutlined,
-  SettingOutlined,
-  PlusCircleOutlined,
-} from "@ant-design/icons";
+  videoState,
+  updateTakingQuiz,
+  updateIsTakingQuizModal,
+} from "./../../redux/videoReducer.js";
+import { PlusCircleOutlined } from "@ant-design/icons";
 import {
   Menu,
   Modal,
@@ -64,6 +66,7 @@ const LMSInterface = () => {
     Thumbnail: "",
     Teacher: "Ronaldo",
   });
+  const dispatch = useDispatch();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [futureTime, setFutureTime] = useState(null);
   const [lectures, setLectures] = useState([
@@ -85,7 +88,7 @@ const LMSInterface = () => {
       Chapter: 1,
       LName: "demo",
       Number: 3,
-      Time_of_lecture: 13,
+      Time_of_lecture: 1,
       isQuiz: true,
     },
     {
@@ -460,7 +463,7 @@ const LMSInterface = () => {
     },
     // Add more sample questions as needed
   ]);
-  const [takingQuiz, setTakingQuiz] = useState(false);
+  const { takingQuiz, isTakingQuizModal } = useSelector(videoState);
   const [isTakingQuizModalOpen, setIsTakingQuizModalOpen] = useState(false);
   console.log("questionbank: ", questionBank);
   // Đây là ví dụ question
@@ -507,6 +510,7 @@ const LMSInterface = () => {
 
   useEffect(() => {
     if (pickedLecture?.isQuiz) setIsTakingQuizModalOpen(true);
+    else setIsTakingQuizModalOpen(false);
     console.log("bạn vào useEffect cho pickedLecture");
   }, [pickedLecture]);
 
@@ -527,7 +531,8 @@ const LMSInterface = () => {
   console.log("takingquiz: ", takingQuiz);
   const handleOkTakingQuizModal = () => {
     setIsTakingQuizModalOpen(false);
-    setTakingQuiz(true);
+    dispatch(updateTakingQuiz("true"));
+    dispatch(updateIsTakingQuizModal("true"));
     console.log("bạn vào handleOkTakingQuizModal");
   };
   const handleCanCelTakingQuizModal = () => {
@@ -683,15 +688,9 @@ const LMSInterface = () => {
 
   const handlePickLecture = (infor) => {
     // setIsTakingQuizModalOpen(true);
+    console.log("infor: ", infor);
     console.log("taking Quiz, pickedLecture: ", takingQuiz, pickedLecture);
-    if (takingQuiz && pickedLecture.isQuiz) {
-      setIsTakingQuizModalOpen(true);
-      return;
-    }
-    if (takingQuiz && pickedLecture.isQuiz === undefined) {
-      console.log("bạn vào handlepick");
-      return;
-    }
+
     console.log("infor: ", infor);
     const key = Number(infor.key);
     const chapter = Math.floor(key / 10);
@@ -703,6 +702,14 @@ const LMSInterface = () => {
     });
     console.log("pickedLectureTemp: ", pickedLectureTemp);
     setPickedLecture(pickedLectureTemp);
+    if (pickedLectureTemp.isQuiz) {
+      setIsTakingQuizModalOpen(true);
+      return;
+    }
+    if (pickedLectureTemp.isQuiz === undefined) {
+      dispatch(updateTakingQuiz(false));
+      console.log("bạn vào handlepick");
+    }
   };
 
   const handleCompleteLecture = () => {
@@ -1032,7 +1039,7 @@ const LMSInterface = () => {
     return `${hours}:${minutes}:${seconds}`;
   };
   const renderContentOfTakingQuizModal = () => {
-    const content = takingQuiz
+    const content = isTakingQuizModal
       ? "Bạn đang thực hiện bài Quiz !!!"
       : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
       Thời lượng: ${pickedLecture?.Time_of_lecture} phút
@@ -1046,6 +1053,7 @@ const LMSInterface = () => {
       </>
     ));
   };
+
   return (
     <>
       {/* modal để xác nhận lại xem người dùng có muốn làm quiz hay không */}
@@ -1123,16 +1131,18 @@ const LMSInterface = () => {
                 {pickedLecture?.isQuiz ? (
                   ""
                 ) : (
-                  <h2 className="text-xl font-semibold">
-                    {pickedLecture?.LName}
-                  </h2>
+                  <>
+                    <h2 className="text-xl font-semibold">
+                      {pickedLecture?.LName}
+                    </h2>
+                    <button
+                      className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
+                      onClick={handleCompleteLecture}
+                    >
+                      Complete
+                    </button>
+                  </>
                 )}
-                <button
-                  className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
-                  onClick={handleCompleteLecture}
-                >
-                  Complete
-                </button>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-gray-600">John Smith</span>
