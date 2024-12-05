@@ -72,9 +72,36 @@ export const CourseSingle = () => {
     const [page, setPage] = useState('overview')
     const [pageComment, setPageComment] = useState(1)
     const [commentA, setCommentA] = useState([])
+    const [submitRating, setSubmitRating] = useState(0);
     const handlePageComment = (event, value) => {
         setPageComment(value);
     };
+    const handleCommentSubmit = () => {
+        const commentText = document.querySelector('textarea').value; // Lấy giá trị từ textarea
+        if (commentText) {
+            const newComment = {
+                id: Date.now(), // Tạo ID mới
+                comment: commentText,
+                user: {
+                    name: "User   Name", // Thay thế bằng tên người dùng thực
+                    avatar: "https://via.placeholder.com/150", // Thay thế bằng ảnh đại diện thực
+                },
+                time: new Date().toLocaleDateString(),
+                rating: submitRating, // Sử dụng giá trị rating hiện tại
+                comment_childen: []
+            };
+            
+            // Cập nhật state với bình luận mới
+            setCommentA(prevComments => [...prevComments, newComment]);
+            
+            // Xóa nội dung textarea và reset rating
+            document.querySelector('textarea').value = '';
+            setSubmitRating(0);
+        } else {
+            alert("Please enter a comment."); // Thông báo nếu không có bình luận
+        }
+    }
+    
     useEffect(() => {
         let start = 3 * (pageComment - 1);
         let end = Math.min(3 * pageComment, comment.length);
@@ -215,7 +242,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2318,
-            "comment": "This is a great course 4",
+            "comment": "A good course !!",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -226,7 +253,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2319, 
-            "comment": "This is a great course 5",
+            "comment": "This is a great course 5, oki !!",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -237,7 +264,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2320,
-            "comment": "This is a great course 6",
+            "comment": "This is a great course 6, learn to code.",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -403,12 +430,13 @@ export const CourseSingle = () => {
                                 </div>
                             </div>
                             <div className='pt-[20px]'>
-                                <button className='bg-primary w-[127px] h-[40px] rounded-[20px] text-[18px] font-normal text-white hover:bg-[#030391dd]'>Comment</button>
+                                <button className='bg-primary w-[127px] h-[40px] rounded-[20px] text-[18px] font-normal text-white hover:bg-[#030391dd]' onClick={handleCommentSubmit}>Comment</button>
                             </div>
                         </div>
                     </div>)
         }
     }
+    
     return (
     <div>
         <div>
@@ -468,4 +496,5 @@ export const CourseSingle = () => {
         </div>
     </div>
     )
+    
 }
