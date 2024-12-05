@@ -242,7 +242,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2318,
-            "comment": "A good course !!",
+            "comment": "T chưa gặp thằng này bao giờz",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -253,7 +253,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2319, 
-            "comment": "This is a great course 5, oki !!",
+            "comment": "This is a great course 5",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -264,7 +264,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2320,
-            "comment": "This is a great course 6, learn to code.",
+            "comment": "This is a great course 6",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",

@@ -635,43 +635,7 @@ const LMSInterface = () => {
       </div>
     );
   };
-  const [comments, setComments] = useState({}); // { courseId: [comments] }
-  const [newComment, setNewComment] = useState("");
-  const [currentCourseId, setCurrentCourseId] = useState(null); // ID của khóa học hiện tại
-  const handleCommentSubmit = () => {
-    if (newComment.trim() && currentCourseId) {
-      const commentToAdd = {
-        id: Date.now(),
-        comment: newComment,
-        user: { name: "User  Name", avatar: "https://via.placeholder.com/150" },
-        time: new Date().toLocaleString(),
-        rating: null,
-        comment_children: [],
-      };
-  
-      setComments((prev) => ({
-        ...prev,
-        [currentCourseId]: [...(prev[currentCourseId] || []), commentToAdd],
-      }));
-  
-      setNewComment(""); // Reset ô nhập bình luận
-    }
-  };
-  <div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
-  <div className="min-h-[430px]">
-    {comments[currentCourseId]?.map((comment) => (
-      <CommentItem key={comment.id} comment={comment} />
-    ))}
-  </div>
-  <Pagination
-    count={Math.ceil((comments[currentCourseId]?.length || 0) / 3)}
-    siblingCount={0}
-    page={pageComment}
-    onChange={handlePageComment}
-    className="flex flex-col items-center"
-  />
-</div>
-  
+
   const renderComment = () => {
     return (
       <div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
@@ -725,7 +689,6 @@ const LMSInterface = () => {
     });
     console.log("pickedLectureTemp: ", pickedLectureTemp);
     setPickedLecture(pickedLectureTemp);
-    setCurrentCourseId(courseId);
   };
 
   const handleCompleteLecture = () => {
