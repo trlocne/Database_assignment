@@ -798,28 +798,36 @@ const LMSInterface = () => {
 
   const handleSectionModalOk = () => {
     sectionForm.validateFields().then((values) => {
+      // Automatically determine the next Chapter number
+      const nextChapterNumber =
+        sections.length > 0
+          ? Math.max(...sections.map((s) => s.Chapter)) + 1
+          : 1;
+
       const newSection = {
-        Chapter: parseInt(values.ChapterNumber),
+        Chapter: nextChapterNumber,
         Title: values.Title,
-        Amount_Of_Time: parseInt(values.Amount_Of_Time),
-        Number_Of_Lecture: parseInt(values.Number_Of_Lecture),
+        Amount_Of_Time: 0, // Assign a default value or modify as needed
+        Number_Of_Lecture: 0, // Assign a default value or modify as needed
       };
 
       setSections((prev) => [...prev, newSection]);
 
-      // Add new section to menu
+      // Add new section to menu with a unique key
       const newMenuItem = {
         key: newSection.Chapter.toString(),
         label: (
           <div className="flex items-center justify-between">
             <span>{newSection.Title}</span>
-            <PlusCircleOutlined
-              onClick={(e) => showModal(newSection, e)}
-              className="ml-2 text-blue-500 hover:text-blue-700"
-            />
+            <Dropdown menu={getDropdownMenu(newSection)} trigger={["click"]}>
+              <PlusCircleOutlined
+                onClick={(e) => e.stopPropagation()}
+                className="ml-2 text-blue-500 hover:text-blue-700"
+              />
+            </Dropdown>
           </div>
         ),
-        children: [],
+        children: [], // Initialize with no children
       };
 
       setActualItems((prev) => [...prev, newMenuItem]);
