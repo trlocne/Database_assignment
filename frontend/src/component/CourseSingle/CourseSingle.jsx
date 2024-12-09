@@ -228,7 +228,7 @@ export const CourseSingle = () => {
                 },
                 {
                     "id": 2317,
-                    "comment": "I agree 3",
+                    "comment": "I agree too",
                     "user": {
                         "name": "Jane Doe",
                         "avatar": "https://via.placeholder.com/150",
@@ -241,7 +241,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2318,
-            "comment": "This is a great course 4",
+            "comment": "Khóa học này rất xứng đáng đăng kí",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -252,7 +252,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2319, 
-            "comment": "This is a great course 5",
+            "comment": "Tuyệt vời",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
@@ -263,7 +263,7 @@ export const CourseSingle = () => {
         },
         {
             "id": 2320,
-            "comment": "This is a great course 6",
+            "comment": "Tôi yêu khóa học",
             "user": {
                 "name": "John Doe",
                 "avatar": "https://via.placeholder.com/150",
