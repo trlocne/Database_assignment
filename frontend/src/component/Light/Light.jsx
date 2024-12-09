@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Play, RotateCcw, Settings, Maximize2 } from "lucide-react";
+
+import { useSelector, useDispatch } from "react-redux";
 import {
-  AppstoreOutlined,
-  MailOutlined,
-  SettingOutlined,
-  PlusCircleOutlined,
-} from "@ant-design/icons";
+  videoState,
+  updateTakingQuiz,
+  updateIsTakingQuizModal,
+} from "./../../redux/videoReducer.js";
+import { PlusCircleOutlined } from "@ant-design/icons";
 import {
   Menu,
   Modal,
@@ -64,6 +66,7 @@ const LMSInterface = () => {
     Thumbnail: "",
     Teacher: "Ronaldo",
   });
+  const dispatch = useDispatch();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [futureTime, setFutureTime] = useState(null);
   const [lectures, setLectures] = useState([
@@ -85,7 +88,7 @@ const LMSInterface = () => {
       Chapter: 1,
       LName: "demo",
       Number: 3,
-      Time_of_lecture: 13,
+      Time_of_lecture: 1,
       isQuiz: true,
     },
     {
@@ -460,7 +463,7 @@ const LMSInterface = () => {
     },
     // Add more sample questions as needed
   ]);
-  const [takingQuiz, setTakingQuiz] = useState(false);
+  const { takingQuiz, isTakingQuizModal } = useSelector(videoState);
   const [isTakingQuizModalOpen, setIsTakingQuizModalOpen] = useState(false);
   console.log("questionbank: ", questionBank);
   // Đây là ví dụ question
@@ -507,6 +510,7 @@ const LMSInterface = () => {
 
   useEffect(() => {
     if (pickedLecture?.isQuiz) setIsTakingQuizModalOpen(true);
+    else setIsTakingQuizModalOpen(false);
     console.log("bạn vào useEffect cho pickedLecture");
   }, [pickedLecture]);
 
@@ -524,9 +528,12 @@ const LMSInterface = () => {
   const showTakingQuizModal = () => {
     setIsTakingQuizModalOpen(true);
   };
+  console.log("takingquiz: ", takingQuiz);
   const handleOkTakingQuizModal = () => {
     setIsTakingQuizModalOpen(false);
-    setTakingQuiz(true);
+    dispatch(updateTakingQuiz("true"));
+    dispatch(updateIsTakingQuizModal("true"));
+    console.log("bạn vào handleOkTakingQuizModal");
   };
   const handleCanCelTakingQuizModal = () => {
     setIsTakingQuizModalOpen(false);
@@ -624,18 +631,20 @@ const LMSInterface = () => {
           src="https://drive.google.com/file/d/10wKFljWZ68W9-of3y6CGJg1uBVvbBvu0/preview"
           width="640"
           height="480"
-          // allow="autoplay"
+          allow="autoplay"
         ></iframe>
         <iframe
           src="https://drive.google.com/file/d/10wKFljWZ68W9-of3y6CGJg1uBVvbBvu0/preview"
           width="640"
           height="480"
-          // allow="autoplay"
+          allow="autoplay"
         ></iframe>
       </div>
     );
   };
-
+  const handlePageComment = (event, value) => {
+    setPageComment(value);
+  };
   const renderComment = () => {
     return (
       <div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
@@ -678,6 +687,10 @@ const LMSInterface = () => {
   };
 
   const handlePickLecture = (infor) => {
+    // setIsTakingQuizModalOpen(true);
+    console.log("infor: ", infor);
+    console.log("taking Quiz, pickedLecture: ", takingQuiz, pickedLecture);
+
     console.log("infor: ", infor);
     const key = Number(infor.key);
     const chapter = Math.floor(key / 10);
@@ -689,6 +702,14 @@ const LMSInterface = () => {
     });
     console.log("pickedLectureTemp: ", pickedLectureTemp);
     setPickedLecture(pickedLectureTemp);
+    if (pickedLectureTemp.isQuiz) {
+      setIsTakingQuizModalOpen(true);
+      return;
+    }
+    if (pickedLectureTemp.isQuiz === undefined) {
+      dispatch(updateTakingQuiz(false));
+      console.log("bạn vào handlepick");
+    }
   };
 
   const handleCompleteLecture = () => {
@@ -707,6 +728,7 @@ const LMSInterface = () => {
   };
 
   const handleRenderOption = () => {
+    if (pickedLecture.isQuiz) return;
     if (renderOption === 1)
       return (
         <div className="mt-4">
@@ -776,28 +798,36 @@ const LMSInterface = () => {
 
   const handleSectionModalOk = () => {
     sectionForm.validateFields().then((values) => {
+      // Automatically determine the next Chapter number
+      const nextChapterNumber =
+        sections.length > 0
+          ? Math.max(...sections.map((s) => s.Chapter)) + 1
+          : 1;
+
       const newSection = {
-        Chapter: parseInt(values.ChapterNumber),
+        Chapter: nextChapterNumber,
         Title: values.Title,
-        Amount_Of_Time: parseInt(values.Amount_Of_Time),
-        Number_Of_Lecture: parseInt(values.Number_Of_Lecture),
+        Amount_Of_Time: 0, // Assign a default value or modify as needed
+        Number_Of_Lecture: 0, // Assign a default value or modify as needed
       };
 
       setSections((prev) => [...prev, newSection]);
 
-      // Add new section to menu
+      // Add new section to menu with a unique key
       const newMenuItem = {
         key: newSection.Chapter.toString(),
         label: (
           <div className="flex items-center justify-between">
             <span>{newSection.Title}</span>
-            <PlusCircleOutlined
-              onClick={(e) => showModal(newSection, e)}
-              className="ml-2 text-blue-500 hover:text-blue-700"
-            />
+            <Dropdown menu={getDropdownMenu(newSection)} trigger={["click"]}>
+              <PlusCircleOutlined
+                onClick={(e) => e.stopPropagation()}
+                className="ml-2 text-blue-500 hover:text-blue-700"
+              />
+            </Dropdown>
           </div>
         ),
-        children: [],
+        children: [], // Initialize with no children
       };
 
       setActualItems((prev) => [...prev, newMenuItem]);
@@ -1017,7 +1047,7 @@ const LMSInterface = () => {
     return `${hours}:${minutes}:${seconds}`;
   };
   const renderContentOfTakingQuizModal = () => {
-    const content = takingQuiz
+    const content = isTakingQuizModal
       ? "Bạn đang thực hiện bài Quiz !!!"
       : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
       Thời lượng: ${pickedLecture?.Time_of_lecture} phút
@@ -1031,13 +1061,14 @@ const LMSInterface = () => {
       </>
     ));
   };
+
   return (
     <>
       {/* modal để xác nhận lại xem người dùng có muốn làm quiz hay không */}
       <Modal
         title="Thực hiện Quiz"
         open={isTakingQuizModalOpen}
-        onOk={() => handleOkTakingQuizModal()}
+        onOk={handleOkTakingQuizModal}
         onCancel={handleCanCelTakingQuizModal}
       >
         {renderContentOfTakingQuizModal()}
@@ -1108,16 +1139,18 @@ const LMSInterface = () => {
                 {pickedLecture?.isQuiz ? (
                   ""
                 ) : (
-                  <h2 className="text-xl font-semibold">
-                    {pickedLecture?.LName}
-                  </h2>
+                  <>
+                    <h2 className="text-xl font-semibold">
+                      {pickedLecture?.LName}
+                    </h2>
+                    <button
+                      className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
+                      onClick={handleCompleteLecture}
+                    >
+                      Complete
+                    </button>
+                  </>
                 )}
-                <button
-                  className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
-                  onClick={handleCompleteLecture}
-                >
-                  Complete
-                </button>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-gray-600">John Smith</span>
@@ -1125,28 +1158,32 @@ const LMSInterface = () => {
                 <span className="text-gray-600">Sr. Product Designer</span>
               </div>
 
-              <div className="mt-4 border-t pt-4">
-                <div className="flex justify-around">
-                  <button
-                    className="font-medium hover:text-blue-500 duration-200"
-                    onClick={() => setRenderOption(1)}
-                  >
-                    Comment
-                  </button>
-                  <button
-                    className="font-medium hover:text-blue-500 duration-200"
-                    onClick={() => setRenderOption(2)}
-                  >
-                    Material
-                  </button>
-                  <button
-                    className="font-medium hover:text-blue-500 duration-200"
-                    onClick={() => setRenderOption(3)}
-                  >
-                    List Comment
-                  </button>
+              {pickedLecture.isQuiz !== undefined ? (
+                ""
+              ) : (
+                <div className="mt-4 border-t pt-4">
+                  <div className="flex justify-around">
+                    <button
+                      className="font-medium hover:text-blue-500 duration-200"
+                      onClick={() => setRenderOption(1)}
+                    >
+                      Comment
+                    </button>
+                    <button
+                      className="font-medium hover:text-blue-500 duration-200"
+                      onClick={() => setRenderOption(2)}
+                    >
+                      Material
+                    </button>
+                    <button
+                      className="font-medium hover:text-blue-500 duration-200"
+                      onClick={() => setRenderOption(3)}
+                    >
+                      List Comment
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               {handleRenderOption()}
             </div>
           </div>
