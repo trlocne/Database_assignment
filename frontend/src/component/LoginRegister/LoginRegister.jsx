@@ -1,5 +1,21 @@
 import React from 'react';
 import './styles.css';
+import api from '../../hooks/api';
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
+import { Routes, Route, useNavigate } from "react-router-dom";
+
+const withRouter = WrappedComponent => props => {
+    const navigate = useNavigate();
+    // other hooks
+  
+    return (
+      <WrappedComponent
+        {...props}
+        {...{ navigate, /* other hooks */ }}
+      />
+    );
+  };
 
 class LoginRegister extends React.Component {
     constructor(props) {
@@ -17,7 +33,9 @@ class LoginRegister extends React.Component {
                 email: '',
                 username: '',
                 password: '',
-                confirmPassword: ''
+                confirmPassword: '',
+                fullname: '',
+                role: '',
             }
         };
     }
@@ -42,16 +60,47 @@ class LoginRegister extends React.Component {
         }));
     }
 
-    handleLoginSubmit = (e) => {
+    handleLoginSubmit = async (e) => {
         e.preventDefault();
         console.log('Login Data:', this.state.loginData);
-        // Add your login logic here
+        try {
+            const response = await api.post('/auth/public/login', {
+                username: this.state.loginData?.emailOrUsername,
+                password: this.state.loginData?.password,
+            });
+            console.log(response.data);
+            if (response.data.status == 200) {
+                localStorage.setItem("JWT_TOKEN", response.data.data.jwtToken);
+                localStorage.setItem("ROLE", response.data.data.role)
+                // this.props.navigate("/"); // use navigate here
+                const { navigate } = this.props;
+                navigate("/");
+            } else {
+                toast.error("Sai tài khoản hoặc mật khẩu.");
+                return;
+            }
+          }
+          catch(error){
+            toast.error("Lỗi đăng nhập");
+            return;
+        }  
+        toast.success("Đăng nhập thành công!");
     }
 
     handleRegisterSubmit = (e) => {
         e.preventDefault();
-        console.log('Register Data:', this.state.registerData);
-        // Add your registration logic here
+        api.post('/auth/public/signup', {
+            username: this.state.registerData?.username,
+            password: this.state.registerData?.password,
+            fullName: this.state.registerData?.fullname,
+            gender: this.state.registerData?.gender === 'female' ? 'F' : 'T',
+            role: this.state.registerData?.role
+        }).then(response => {
+            toast.success("Đăng kí thành công!");
+        }).catch(error => {
+            console.log(error);
+            toast.error("Đăng kí thất bại!");
+        })
     }
 
     togglePasswordVisibility = (field) => {
@@ -71,6 +120,7 @@ class LoginRegister extends React.Component {
 
         return (
             <div className="container">
+                <ToastContainer />
                 <nav className="breadcrumb">
                     <a href="/">Homepage</a>
                     <span> / </span>
@@ -136,10 +186,10 @@ class LoginRegister extends React.Component {
                         <form onSubmit={this.handleRegisterSubmit}>
                             <div className="form-group">
                                 <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email*"
-                                    value={registerData.email}
+                                    type="text"
+                                    name="fullname"
+                                    placeholder="Full Name*"
+                                    value={registerData.fullname}
                                     onChange={this.handleRegisterChange}
                                     required
                                 />
@@ -154,6 +204,31 @@ class LoginRegister extends React.Component {
                                     onChange={this.handleRegisterChange}
                                     required
                                 />
+                            </div>
+
+                            <div className="form-group flex flex-row">
+                                <select
+                                    name="role"
+                                    value={registerData.role}
+                                    onChange={this.handleRegisterChange}
+                                    required
+                                >
+                                    <option value="" disabled>Select Role*</option>
+                                    <option value="ADMIN">ADMIN</option>
+                                    <option value="LEANER">LEARNER</option>
+                                    <option value="TEACHER">TEACHER</option>
+                                </select>
+
+                                <select
+                                    name="gender"
+                                    value={registerData.gender}
+                                    onChange={this.handleRegisterChange}
+                                    required
+                                >
+                                    <option value="" disabled>Select Gender*</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
                             </div>
 
                             <div className="form-group password-field">
@@ -201,4 +276,5 @@ class LoginRegister extends React.Component {
     }
 }
 
-export default LoginRegister;
+// Exporting the component wrapped with the HOC
+export default withRouter(LoginRegister);

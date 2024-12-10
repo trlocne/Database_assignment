@@ -1,9 +1,7 @@
-
-
 import React, { useState, useEffect } from 'react';  
 import { Search, Plus, X, Trash2, Upload, Check } from 'lucide-react';  
 import { Card, CardContent } from '../ui/card';  
-import { useNavigate } from 'react-router-dom';  
+import { useNavigate, useParams } from 'react-router-dom';  
 
 const MultiSelect = ({ options, selected, onChange, label }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,7 +70,7 @@ const CourseCard = ({ course, onDelete }) => {
   const navigate = useNavigate();
 
   const handleViewMore = () => {
-    navigate(`/course/${course.id}`);
+    navigate(`/course/${course.code}`);
   };
 
   return (

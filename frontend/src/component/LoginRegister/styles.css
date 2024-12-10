@@ -47,6 +47,7 @@ h2 {
 
 input[type="text"],
 input[type="email"],
+select,
 input[type="password"] {
     width: 100%;
     padding: 10px 12px;

@@ -494,6 +494,9 @@ const LMSInterface = () => {
     setNewComment(""); // Reset ô nhập bình luận
   }
 };
+const handlePageComment = (event, value) => {
+  setPageComment(value);
+};
 <div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
   <div className="min-h-[430px]">
     {comments[currentCourseId]?.map((comment) => (
@@ -507,7 +510,7 @@ const LMSInterface = () => {
     onChange={handlePageComment}
     className="flex flex-col items-center"
   />
-</div>
+</div> 
   const handleAddNewQuestion = () => {
     questionForm.validateFields().then((values) => {
       const newQuestion = {
@@ -677,9 +680,6 @@ const LMSInterface = () => {
         ></iframe>
       </div>
     );
-  };
-  const handlePageComment = (event, value) => {
-    setPageComment(value);
   };
   const renderComment = () => {
     return (

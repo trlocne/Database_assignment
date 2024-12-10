@@ -23,7 +23,7 @@ const useRouterCustome = () => {
           element: <CourseSingle />,
         },
         {
-          path: "video",
+          path: "video/:id",
           element: <LMSInterface />,
         },
       ],

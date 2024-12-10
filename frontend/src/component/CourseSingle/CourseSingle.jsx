@@ -11,6 +11,8 @@ import quiz from '../../assets/quiz.svg'
 import Pagination from '@mui/material/Pagination';
 import {CommentItem} from '../../component/CommentItem/'
 import Footer from '../../component/Footer/'
+import api from '../../hooks/api'
+import { useParams, useNavigate } from "react-router";
 function CourseDisplay({ course }) {
     const [openChapterIndex, setOpenChapterIndex] = useState(null);
 
@@ -21,39 +23,49 @@ function CourseDisplay({ course }) {
     return (
         <div className='course'>
             {/* Course Chapters */}
-            {course.body.map((chapter, chapterIndex) => (
+            {course.sections.map((chapter, chapterIndex) => (
                 <div key={chapterIndex} className='chapter mb-[15px] border rounded'>
                     {/* Chapter Header */}
                     <div
                         className='chapter-header p-[15px] bg-white flex justify-between items-center cursor-pointer'
                         onClick={() => toggleChapter(chapterIndex)}
                     >
-                        <h2 className='text-[18px] font-semibold'>{openChapterIndex === chapterIndex ? '▾' : '▸'} {chapter.chapter.title}</h2>
-                        <span className='text-gray-600'>{chapter.chapter.lessons} lessons • {chapter.chapter.time} mins</span>
+                        <div className='text-[18px] font-semibold'>{openChapterIndex === chapterIndex ? '▾' : '▸'} {chapter.sectionTitle}</div>
+                        <span className='text-gray-600'>{chapter.numberOfLecture} lessons • {chapter.amountOfTime} mins</span>
                     </div>
 
                     {/* Lessons (visible if expanded) */}
                     {openChapterIndex === chapterIndex && (
                         <div className='lesson-list px-[15px] pb-[15px] bg-white'>
-                            {chapter.body.map((lesson, lessonIndex) => (
+                            {chapter.lectures.map((lesson, lessonIndex) => (
                                 <div key={lessonIndex} className='lesson flex justify-between items-center ml-[20px] py-[12px]'>
                                     <div className='flex items-center align-center flex-row'>
-                                        {lesson.type === 'video' ? (
+                                        {/* {lesson.type === 'video' ? (
                                             <img src={video} alt='video' className='w-[20px] h-[20px] ' />
                                         ) : (
                                             <img src={quiz} alt='quiz' className='w-[20px] h-[20px]' />
-                                        )}
+                                        )} */}
+                                        <img src={video} alt='video' className='w-[20px] h-[20px] ' />
+                                        <a href={lesson.video} target='_blank' rel='noopener noreferrer' className='pl-[10px]'>{lesson.lectureName}</a>
+                                    </div>
+                                    <div className="flex flex-row items-center">
+                                        <div className='text-right'>{lesson.timeOfLecture} mins</div>
+                                    </div>
+                                </div>
+                            ))}
+                            {chapter.quizzes.map((lesson, lessonIndex) => (
+                                <div key={lessonIndex} className='lesson flex justify-between items-center ml-[20px] py-[12px]'>
+                                    <div className='flex items-center align-center flex-row'>
+                                        {/* {lesson.type === 'video' ? (
+                                            <img src={video} alt='video' className='w-[20px] h-[20px] ' />
+                                        ) : (
+                                            
+                                        )} */}
+                                        <img src={quiz} alt='quiz' className='w-[20px] h-[20px]' />
                                         <a href={lesson.video} target='_blank' rel='noopener noreferrer' className='pl-[10px]'>{lesson.title}</a>
                                     </div>
                                     <div className="flex flex-row items-center">
-                                        <div className='text-right'>{lesson.time}</div>
-                                        <div className='ml-[20px]'>
-                                            {lesson.status === 'done' ? (
-                                                <span><img src={check}></img></span>
-                                            ) : (
-                                                <span><img src={lock}></img></span>
-                                            )}
-                                        </div>
+                                        <div className='text-right'>{lesson.homeworkTime} mins</div>
                                     </div>
                                 </div>
                             ))}
@@ -83,7 +95,7 @@ export const CourseSingle = () => {
                 id: Date.now(), // Tạo ID mới
                 comment: commentText,
                 user: {
-                    name: "User   Name", // Thay thế bằng tên người dùng thực
+                    name: "User Name", // Thay thế bằng tên người dùng thực
                     avatar: "https://via.placeholder.com/150", // Thay thế bằng ảnh đại diện thực
                 },
                 time: new Date().toLocaleDateString(),
@@ -372,6 +384,24 @@ export const CourseSingle = () => {
             "comment_childen": []
         },
     ]
+
+    const [courseOverview, setCourseOverview] = useState([])
+    const [courseContent, setCourseContent] = useState([])
+    const [reviewCourses, setReviewCourses] = useState([])
+    const { id } = useParams();
+
+    useEffect(() => {
+        api.get(`/courses/${id}`)
+        .then(res => {
+            setCourseOverview(res.data.data.courseOverview)
+            setCourseContent(res.data.data.courseContent)
+            console.log(res.data)
+        })
+        .catch(err => {
+            console.log(err)
+        })
+    }
+    ,[])
     const lms = (category) => {
         const [submitRating, setSubmitRating] = useState(0)
         switch (category) {
@@ -381,23 +411,23 @@ export const CourseSingle = () => {
                     <div className='py-[20px] px-[30px]'>
                         <div className='text-[24px] font-semibold'>Description</div>
                         <div className='text-[16px] pt-[10px]'>
-                            <p>{course.header.description}</p>
+                            <p>{courseOverview.description}</p>
                             <div className='flex pt-[10px]'>
                                 <p className='font-semibold'>Rating: </p>
-                                <Rating precision={0.5} name="half-rating-read" value={course.header.rating} readOnly />
+                                <Rating precision={0.5} name="half-rating-read" value={courseOverview.rating} readOnly />
                             </div>
                         </div>
                         <div className='text-[24px] font-semibold pt-[10px]'>Requirements</div>
-                        <div className='text-[16px] pt-[10px]'>{course.header.requirements.reduce((previousValue, currentValue) => (previousValue + ', ' + currentValue))}</div>
+                        <div className='text-[16px] pt-[10px]'>{courseOverview.requirement}</div>
                         <div className='text-[24px] font-semibold pt-[10px]'>Languages</div>
-                        <div className='text-[16px] pt-[10px]'>{course.header.languages.reduce((previousValue, currentValue) => (previousValue + ', ' + currentValue))}</div>
+                        <div className='text-[16px] pt-[10px]'>{courseOverview.languages?.reduce((previousValue, currentValue) => (previousValue + ', ' + currentValue))}</div>
                     </div>
                     </div>)
             case 'course-content':
                 return (
                     <div className='py-[20px] px-[30px]'>
-                        <div className='pb-[20px]'>{course.header.description}</div>
-                        <CourseDisplay course={course} />
+                        <div className='pb-[20px]'>{courseOverview.description}</div>
+                        <CourseDisplay course={courseContent} />
                     </div>)
             case 'review':
                 return (
@@ -435,6 +465,7 @@ export const CourseSingle = () => {
                     </div>)
         }
     }
+    const navigate = useNavigate();
     return (
     <div>
         <div>
@@ -443,28 +474,28 @@ export const CourseSingle = () => {
                     <div className='w-[850px]'>
                         <div>
                             <div className='text-[36px] font-semibold leading-[120%]'>
-                                {course.header.title}
+                                {courseOverview.title}
                             </div>
                             <div className='pt-[20px]'>   
-                                by <span className='text-[#cacaca]'>{course.header.author}</span>
+                                by <span className='text-[#cacaca]'>{courseOverview.teacherName}</span>
                             </div>
                             <ul className='flex flex-row py-[20px]'>
-                                <li className='flex flex-row justify-center align-center pr-[25px]'><img src={clock}/> <div className='pl-[10px]'>{course.header.time} Weeks</div></li>
-                                <li className='flex flex-row justify-center align-center pr-[25px]'><img src={students}/> <div className='pl-[10px]'>{course.header.students} Students</div></li>
-                                <li className='flex flex-row justify-center align-center pr-[25px]'><img src={lesson_img}/> <div className='pl-[10px]'>{course.header.lessons} Lessons</div></li>
-                                {course.header.status == 'done' ? <li><button className='bg-[#7abe9633] text-[#68B266] font-semibold px-[10px] rounded-[20px]'>Done</button></li>
+                                <li className='flex flex-row justify-center align-center pr-[25px]'><img src={clock}/> <div className='pl-[10px]'>{courseOverview.duration} Weeks</div></li>
+                                <li className='flex flex-row justify-center align-center pr-[25px]'><img src={students}/> <div className='pl-[10px]'>{courseOverview.numberOfLearner} Students</div></li>
+                                <li className='flex flex-row justify-center align-center pr-[25px]'><img src={lesson_img}/> <div className='pl-[10px]'>{courseOverview.numberOfLessons} Lessons</div></li>
+                                {courseOverview.status == 'done' ? <li><button className='bg-[#7abe9633] text-[#68B266] font-semibold px-[10px] rounded-[20px]'>Done</button></li>
                                 :<li><button className='bg-[#74addf33] text-[#4957D5] font-semibold px-[10px] rounded-[20px]'>Progress</button></li>}
                             </ul>
                         </div>
                     </div>
                     <div className='relative'>
                         <div className='border-lightGrey border-[1px] rounded-[20px] absolute top-[20px] w-[410px]'>
-                            <img src={course.header.thumbnail} className='w-[410px] h-[250px] rounded-t-[20px] bg-lightGrey'/>
+                            <img src={courseOverview.thumbnail} className='w-[410px] h-[250px] rounded-t-[20px] bg-lightGrey'/>
                             {buy ?
                             (<div className='text-[24px] font-semibold text-black'>
                                 <div className='flex flex-row justify-center align-center bg-white py-[20px] rounded-b-[20px]'>
-                                    <div className='text-red mx-[30px]'>{course.header.price}$</div>
-                                    <button className='bg-primary w-[127px] h-[40px] rounded-[20px] text-[18px] font-normal text-white mx-[30px] hover:bg-[#030391dd]'>Buy Now</button>
+                                    <div className='text-red mx-[30px]'>{courseOverview.price}$</div>
+                                    <button className='bg-primary w-[127px] h-[40px] rounded-[20px] text-[18px] font-normal text-white mx-[30px] hover:bg-[#030391dd]' onClick={() => navigate(`/video/${id}`)}>Buy Now</button>
                                 </div>
                             </div>) : (
                             <div className='text-[24px] font-semibold text-black'>

@@ -5,13 +5,14 @@ import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { useNavigate } from 'react-router-dom';
+import api from '../../hooks/api';
 
 // CourseCard Component
 const CourseCard = ({ course }) => {
   const navigate = useNavigate();
 
   const handleViewMore = () => {
-    navigate(`/course/${course.id}`);
+    navigate(`/course/${course.code}`);
   };``
 
   return (
@@ -19,7 +20,7 @@ const CourseCard = ({ course }) => {
       <div className="flex gap-4 p-4">
         <div className="w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
           <img 
-            src={course.image || "/api/placeholder/192/128"} 
+            src={course.thumbnail || "/api/placeholder/192/128"} 
             alt={course.title}
             className="w-full h-full object-cover"
           />
@@ -29,12 +30,12 @@ const CourseCard = ({ course }) => {
             <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
           <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-          <div className="text-sm text-gray-600 mb-2">by {course.instructor}</div>
+          <div className="text-sm text-gray-600 mb-2">by {course.teacherName}</div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
             <span>{course.duration} Weeks</span>
-            <span>{course.students} Students</span>
-            <span>{course.level}</span>
-            <span>{course.lessons} Lessons</span>
+            <span>{course.numberOfLearner} Students</span>
+            <span>Rating: {course.rating}</span>
+            <span>{course.numberOfLessons} Lessons</span>
           </div>
           <div className="flex justify-between items-center mt-4">
             <div className="font-semibold">
@@ -84,45 +85,7 @@ const CourseListing = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   // Sample Data
-  const sampleCourses = [
-    {
-      id: 1,
-      title: 'Introduction to Photography',
-      instructor: 'John Doe',
-      category: 'Photography',
-      duration: 4,
-      students: 256,
-      lessons: 24,
-      price: 49.99,
-      level: 'Beginner',
-      image: '/api/placeholder/192/128'
-    },
-    {
-      id: 2,
-      title: 'Advanced Web Development',
-      instructor: 'Jane Smith',
-      category: 'Development',
-      duration: 8,
-      students: 428,
-      lessons: 42,
-      price: 79.99,
-      level: 'Advanced',
-      image: '/api/placeholder/192/128'
-    },
-    {
-      id: 3,
-      title: 'Digital Marketing Fundamentals',
-      instructor: 'Mike Johnson',
-      category: 'Marketing',
-      duration: 6,
-      students: 312,
-      lessons: 32,
-      price: 59.99,
-      level: 'Intermediate',
-      image: '/api/placeholder/192/128'
-    },
-    // Add more sample courses as needed
-  ];
+  const [sampleCourses, setSampleCourses] = useState([]);
 
   const categories = [
     { label: 'Photography', value: 'photography', count: 15 },
@@ -207,6 +170,17 @@ const CourseListing = () => {
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, [searchTerm, selectedCategories, selectedInstructors, selectedLevels, currentPage]);
+  useEffect(() => {
+    api.get('/courses?searchFlag=0')
+      .then((res) => {
+        console.log(res.data.data);
+        setSampleCourses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+  , []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
