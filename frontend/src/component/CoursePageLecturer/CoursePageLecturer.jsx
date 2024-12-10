@@ -167,14 +167,15 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     title: '',  
     instructor: '',  
     category: '',  
-    // duration: '',  
+    duration: '',  
+    code: '',
+    language: [],
     // students: '0',  
     // lessons: '',  
     price: '',
     level: '',
     image: '/api/placeholder/192/128',
     topics: [] 
-
   });  
 
   const [thumbnailPreview, setThumbnailPreview] = useState('/api/placeholder/192/128');
@@ -184,6 +185,12 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   ];  
 
   const levels = ['Beginner', 'Intermediate', 'Advanced'];  
+
+  const languages = [
+    { value: 'en', label: 'English' },
+    { value: 'vie', label: 'VietNamese' },
+   
+  ];
 
   const topicOptions = [
     { label: 'Web Development', value: 'web-dev' },
@@ -204,6 +211,13 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     setNewCourse(prev => ({
       ...prev,
       topics: selected
+    }));
+  };
+
+  const handleLanguagesChange = (selected) => {
+    setNewCourse(prev => ({
+      ...prev,
+      language: selected
     }));
   };
 
@@ -244,11 +258,13 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       title: '',  
       instructor: '',  
       category: '',  
-      // duration: '',  
+      duration: '',  
       // students: '0',  
-      // lessons: '',  
+      lessons: '',  
+      code: '',
       price: '',  
       level: '',  
+      language: [],
       image: '/api/placeholder/192/128'  
     });
     onClose();  
@@ -330,31 +346,40 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               ))}  
             </select>  
 
+             
+
              <MultiSelect
               options={topicOptions}
               selected={newCourse.topics}
               onChange={handleTopicsChange}
               label="Select Topics"
              />
-             
-              {/* <input  
+
+              <input  
                 type="number"  
                 name="duration"  
                 value={newCourse.duration}  
                 onChange={handleInputChange}  
-                placeholder="Duration (weeks)"  
+                placeholder="Duration (days)"  
                 className="w-full p-2 border rounded"  
                 min="1"  
               />  
+
+             <MultiSelect
+              options={languages}
+              selected={newCourse.language}
+              onChange={handleLanguagesChange}
+              label="Select Languages"
+             />
               <input  
-                type="number"  
-                name="lessons"  
-                value={newCourse.lessons}  
+                type="text"  
+                name="code"  
+                value={newCourse.code}  
                 onChange={handleInputChange}  
-                placeholder="Number of Lessons"  
+                placeholder="Code Course"  
                 className="w-full p-2 border rounded"  
-                min="1"  
-              />   */}
+                 
+              />  
              
             <input  
               type="number"  
@@ -364,7 +389,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               placeholder="Course Price"  
               className="w-full p-2 border rounded"  
               min="0"  
-              step="0.01"  
+              step="1"  
             />  
             <textarea  
               name="description"  
