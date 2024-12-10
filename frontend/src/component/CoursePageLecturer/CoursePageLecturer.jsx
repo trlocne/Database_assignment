@@ -173,7 +173,8 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     // students: '0',  
     // lessons: '',  
     price: '',
-    level: '',
+    //level: '',
+    requirement: '',
     image: '/api/placeholder/192/128',
     topics: [] 
   });  
@@ -188,7 +189,11 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
 
   const languages = [
     { value: 'en', label: 'English' },
-    { value: 'vie', label: 'VietNamese' },
+    { value: 'vie', label: 'Vietnamese' },
+    { value: 'es', label: 'Spanish' },
+    { value: 'fr', label: 'French' },
+    { value: 'de', label: 'German' },
+    { value: 'cn', label: 'Chinese' }
    
   ];
 
@@ -262,8 +267,9 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       // students: '0',  
       lessons: '',  
       code: '',
+      requirement: '',
       price: '',  
-      level: '',  
+      //level: '',  
       language: [],
       image: '/api/placeholder/192/128'  
     });
@@ -333,18 +339,18 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                 <option key={cat} value={cat}>{cat}</option>  
               ))}  
             </select>  
-            <select  
+            {/* <select  
               name="level"  
               value={newCourse.level}  
               onChange={handleInputChange}  
               className="w-full p-2 border rounded"  
               required  
-            >  
+             >  
               <option value="">Select Level</option>  
               {levels.map(level => (  
                 <option key={level} value={level}>{level}</option>  
               ))}  
-            </select>  
+             </select>   */}
 
              
 
@@ -365,6 +371,17 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                 min="1"  
               />  
 
+              <input  
+                type="text"  
+                name="requirement"  
+                value={newCourse.requirement}  
+                onChange={handleInputChange}  
+                placeholder="Courses Requirement"  
+                className="w-full p-2 border rounded"  
+                min="1"  
+              />  
+
+
              <MultiSelect
               options={languages}
               selected={newCourse.language}
@@ -381,7 +398,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                  
               />  
              
-            <input  
+             <input  
               type="number"  
               name="price"  
               value={newCourse.price}  
@@ -579,12 +596,12 @@ const CourseListing = () => {
               onChange={handleInstructorChange}
             /> */}
 
-            <FilterSection
+            {/* <FilterSection
               title="Level"
               options={levels}
               selected={selectedLevels}
               onChange={handleLevelChange}
-            />
+            /> */}
           </div>
         </div>
 
@@ -665,11 +682,3 @@ const CourseListing = () => {
 };
 
 export default CourseListing;
-
-
-
-
-
-
-
-
