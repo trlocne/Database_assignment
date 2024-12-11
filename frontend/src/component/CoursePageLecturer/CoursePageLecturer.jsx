@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';  
-import { Search, Plus, X, Trash2, Upload, Check } from 'lucide-react';  
+import { Search, Plus, X, Trash2, Upload, Edit } from 'lucide-react';  
+import { Check } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';  
-import { useNavigate, useParams } from 'react-router-dom';  
+import { useNavigate } from 'react-router-dom';  
+import api from '../../hooks/api';
+import { ToastContainer, toast } from "react-toastify";
+import axios from 'axios';
 
 const MultiSelect = ({ options, selected, onChange, label }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +32,7 @@ const MultiSelect = ({ options, selected, onChange, label }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="text-gray-700">
-          {selected.length ? `${selected.length} selected` : label}
+          {selected?.length ? `${selected?.length} selected` : label}
         </span>
         <button 
           onClick={() => setIsOpen(!isOpen)}
@@ -66,11 +70,29 @@ const MultiSelect = ({ options, selected, onChange, label }) => {
     </div>
   );
 };
-const CourseCard = ({ course, onDelete }) => {
+
+const CourseCard = ({ course, onDelete, onEdit, setUpdateCourse,setIsUpdateCourseModalOpen, courseArr }) => {
+  
+  const handleUpdateCourse = () => {
+    setUpdateCourse(course)
+    setIsUpdateCourseModalOpen(true)
+  }
+  
   const navigate = useNavigate();
 
   const handleViewMore = () => {
     navigate(`/course/${course.code}`);
+  };
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className={`text-lg ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}>
+            ★
+          </span>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -78,31 +100,43 @@ const CourseCard = ({ course, onDelete }) => {
       <div className="flex gap-4 p-4">
         <div className="w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
           <img 
-            src={course.image || "/api/placeholder/192/128"} 
-            alt={course.title}
+            src={course.thumbnail || "/api/placeholder/192/128"} 
+            alt={course.name}
             className="w-full h-full object-cover"
           />
         </div>
         <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div className="text-sm text-gray-600 mb-1">
-              <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
-            </div>
-            <button 
-              onClick={() => onDelete(course.id)}
-              className="text-red-500 hover:text-red-700 transition-colors"
-              title="Delete course"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+        <div className="flex justify-between items-start">
+          <div className="text-sm text-gray-600 mb-1">
+            <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
-          <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-          <div className="text-sm text-gray-600 mb-2">by {course.instructor}</div>
+          <div className="flex items-center gap-2">
+              <button 
+                onClick={() => handleUpdateCourse()}
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+                title="Edit course"
+              >
+                <Edit className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => onDelete(course.code)}
+                className="text-red-500 hover:text-red-700 transition-colors"
+                title="Delete course"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+            </div>
+          <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
+          <div className="text-sm text-gray-600 mb-2 flex items-center gap-3">
+            <span>by {course.teacherName}</span>
+            <StarRating rating={course.rating} />
+          </div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
-            <span>{course.duration} Weeks</span>
-            <span>{course.students} Students</span>
-            <span>{course.lessons} Lessons</span>
-            <span>{course.level}</span>
+            <span>{course.duration} Minutes</span>
+            <span>{course.numberOfLearner} Students</span>
+            {/* <span>{course.level}</span> */}
+            <span>{course.numberOfLessons} Lessons</span>
           </div>
           <div className="flex justify-between items-center mt-4">
             <div className="font-semibold">
@@ -119,26 +153,6 @@ const CourseCard = ({ course, onDelete }) => {
     </Card>
   );
 };
-
-
-const categories = [
-  { value: 'photography', label: 'Photography', count: 15 },
-  { value: 'development', label: 'Development', count: 20 },
-  { value: 'marketing', label: 'Marketing', count: 12 },
-  { value: 'business', label: 'Business', count: 8 }
-];
-
-const instructors = [
-  { value: 'john doe', label: 'John Doe', count: 5 },
-  { value: 'jane smith', label: 'Jane Smith', count: 3 },
-  { value: 'mike johnson', label: 'Mike Johnson', count: 4 }
-];
-
-const levels = [
-  { value: 'beginner', label: 'Beginner', count: 10 },
-  { value: 'intermediate', label: 'Intermediate', count: 8 },
-  { value: 'advanced', label: 'Advanced', count: 6 }
-];
 
 const FilterSection = ({ title, options, selected, onChange }) => (
   <div className="mb-6">
@@ -159,20 +173,18 @@ const FilterSection = ({ title, options, selected, onChange }) => (
     ))}
   </div>
 );
-
-const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {  
+const AddCourseModal = ({ isOpen, onClose, setCourses}) => {  
   const [newCourse, setNewCourse] = useState({  
-    title: '',  
-    instructor: '',  
-    category: '',  
-    // duration: '',  
-    // students: '0',  
-    // lessons: '',  
-    price: '',
-    level: '',
-    image: '/api/placeholder/192/128',
-    topics: [] 
-
+    "code": "",
+    "name": "",
+    "title": "",
+    "status": "",
+    "description": "",
+    "requirement": "",
+    "thumbnail": "",
+    "price": "",
+    "category": "",
+    "languages": []
   });  
 
   const [thumbnailPreview, setThumbnailPreview] = useState('/api/placeholder/192/128');
@@ -181,13 +193,14 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     'Photography', 'Development', 'Marketing', 'Business'  
   ];  
 
-  const levels = ['Beginner', 'Intermediate', 'Advanced'];  
-
-  const topicOptions = [
-    { label: 'Web Development', value: 'web-dev' },
-    { label: 'Mobile Development', value: 'mobile-dev' },
-    { label: 'UI Design', value: 'ui-design' },
-    { label: 'UX Design', value: 'ux-design' }
+  const languages = [
+    { value: 'English', label: 'English' },
+    { value: 'Vietnamese', label: 'Vietnamese' },
+    { value: 'Spanish', label: 'Spanish' },
+    { value: 'French', label: 'French' },
+    { value: 'German', label: 'German' },
+    { value: 'Chinese', label: 'Chinese' }
+   
   ];
 
   const handleInputChange = (e) => {  
@@ -195,64 +208,88 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     setNewCourse(prev => ({  
       ...prev,  
       [name]: value  
-    }));  
+    })); 
   };  
 
-  const handleTopicsChange = (selected) => {
-    setNewCourse(prev => ({
-      ...prev,
-      topics: selected
-    }));
+  const handleLanguagesChange = (selected) => {
+    setNewCourse(prev => ({  
+      ...prev,  
+      languages: selected 
+    })); 
   };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setNewCourse((prev) => ({
+        ...prev,
+        thumbnail: file, // Keep the file object here for FormData
+      }));
+  
       const reader = new FileReader();
       reader.onloadend = () => {
-        setThumbnailPreview(reader.result);
-        setNewCourse(prev => ({
-          ...prev,
-          image: reader.result
-        }));
+        setThumbnailPreview(reader.result); // Preview the file
       };
       reader.readAsDataURL(file);
     }
   };
 
-
-  const handleSubmit = (e) => {  
+  const handleSubmit = async (e) => {  
     e.preventDefault();  
-    if (!newCourse.title || !newCourse.category || !newCourse.instructor) {  
-      alert('Please fill in required fields');  
-      return;  
-    }  
-
-    const courseToAdd = {  
-      ...newCourse,  
-      id: Date.now(),
-       duration: parseInt(newCourse.duration) || 0,  
-       students: parseInt(newCourse.students) || 0,  
-       lessons: parseInt(newCourse.lessons) || 0,  
-      price: parseFloat(newCourse.price) || 0  
-    };  
-
-    onAddCourse(courseToAdd);  
-    setNewCourse({  // Reset form
-      title: '',  
-      instructor: '',  
-      category: '',  
-      // duration: '',  
-      // students: '0',  
-      // lessons: '',  
-      price: '',  
-      level: '',  
-      image: '/api/placeholder/192/128'  
+    const formData = new FormData();
+    Object.keys(newCourse).forEach((key) => {
+      if (key === 'languages') {
+        newCourse.languages.forEach((language) => formData.append('language', language)); // Multiple languages
+      } else if (key === 'thumbnail') {
+        formData.append('thumbnail', newCourse.thumbnail);
+      } else {
+        formData.append(key, newCourse[key]);
+      }
     });
-    onClose();  
+    try {
+      const token = localStorage.getItem('JWT_TOKEN');
+      const config = {headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${token}`,
+      }};
+      const res = await axios.post('http://localhost:8080/api/courses/create', formData, config);
+      api.get('/courses/teacher')
+      .then((res) => {
+        setCourses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+      toast.success("Course added successfully");
+      setNewCourse({  // Reset form
+        "code": "",
+        "name": "",
+        "title": "",
+        "duration": 0,
+        "status": "",
+        "rating": 0,
+        "description": "",
+        "requirement": "",
+        "thumbnail": "",
+        "price": "",
+        "numberOfLearner": 0,
+        "teacherName": "",
+        "category": "",
+        "numberOfLessons": 0,
+        "languages": [] 
+      });
+      setThumbnailPreview('/api/placeholder/192/128');
+      onClose();
+    }
+    catch (err) {
+      console.error(err);
+      toast.error("Failed to add course");
+    } 
+      
   };  
 
   if (!isOpen) return null;  
+
 
   return (  
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">  
@@ -286,6 +323,24 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
             {/* Right side - Form Fields */}
             <div className="flex-1 space-y-4">
             <input  
+                type="text"  
+                name="code"  
+                value={newCourse.code}  
+                onChange={handleInputChange}  
+                placeholder="Code Course"  
+                className="w-full p-2 border rounded"    
+            /> 
+
+            <input  
+                type="text"  
+                name="name"  
+                value={newCourse.name}  
+                onChange={handleInputChange}  
+                placeholder="Course Name"  
+                className="w-full p-2 border rounded"    
+            />
+
+            <input  
               type="text"  
               name="title"  
               value={newCourse.title}  
@@ -294,15 +349,45 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               className="w-full p-2 border rounded"  
               required  
             />  
-            <input  
-              type="text"  
-              name="instructor"  
-              value={newCourse.instructor}  
+
+            <select  
+              name="status"  
+              value={newCourse.status}  
               onChange={handleInputChange}  
-              placeholder="Instructor Name"  
               className="w-full p-2 border rounded"  
               required  
+            >  
+              <option key={`In progress`} value={`In progress`}>In progress</option>
+              <option key={"Done"} value={"Done"}>{"Done"}</option>  
+            </select>
+
+            <textarea  
+              name="description"  
+              value={newCourse.description}  
+              onChange={handleInputChange}  
+              placeholder="Course Description"  
+              className="w-full p-2 border rounded h-20"  
             />  
+
+            <input  
+              type="text"  
+              name="requirement"  
+              value={newCourse.requirement}  
+              onChange={handleInputChange}  
+              placeholder="Courses Requirement"  
+              className="w-full p-2 border rounded"  
+              min="1"  
+            />  
+
+            <input  
+              type="text"  
+              name="price"  
+              value={newCourse.price}  
+              onChange={handleInputChange}  
+              placeholder="Course Price"  
+              className="w-full p-2 border rounded"  
+            />
+
             <select  
               name="category"  
               value={newCourse.category}  
@@ -314,63 +399,16 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               {categories.map(cat => (  
                 <option key={cat} value={cat}>{cat}</option>  
               ))}  
-            </select>  
-            <select  
-              name="level"  
-              value={newCourse.level}  
-              onChange={handleInputChange}  
-              className="w-full p-2 border rounded"  
-              required  
-            >  
-              <option value="">Select Level</option>  
-              {levels.map(level => (  
-                <option key={level} value={level}>{level}</option>  
-              ))}  
-            </select>  
+            </select> 
+              
+
 
              <MultiSelect
-              options={topicOptions}
-              selected={newCourse.topics}
-              onChange={handleTopicsChange}
-              label="Select Topics"
+              options={languages}
+              selected={newCourse.languages}
+              onChange={handleLanguagesChange}
+              label="Select Languages"
              />
-             
-              {/* <input  
-                type="number"  
-                name="duration"  
-                value={newCourse.duration}  
-                onChange={handleInputChange}  
-                placeholder="Duration (weeks)"  
-                className="w-full p-2 border rounded"  
-                min="1"  
-              />  
-              <input  
-                type="number"  
-                name="lessons"  
-                value={newCourse.lessons}  
-                onChange={handleInputChange}  
-                placeholder="Number of Lessons"  
-                className="w-full p-2 border rounded"  
-                min="1"  
-              />   */}
-             
-            <input  
-              type="number"  
-              name="price"  
-              value={newCourse.price}  
-              onChange={handleInputChange}  
-              placeholder="Course Price"  
-              className="w-full p-2 border rounded"  
-              min="0"  
-              step="0.01"  
-            />  
-            <textarea  
-              name="description"  
-              value={newCourse.description}  
-              onChange={handleInputChange}  
-              placeholder="Course Description"  
-              className="w-full p-2 border rounded h-20"  
-            />  
             </div>
           </div>  
           <div className="flex justify-end space-x-2 mt-4">  
@@ -394,52 +432,261 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   );  
 }; 
 
-const CourseListing = () => {  
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: 'Introduction to Photography',
-      instructor: 'John Doe',
-      category: 'Photography',
-      duration: 4,
-      students: 256,
-      lessons: 24,
-      price: 49.99,
-      level: 'Beginner',
-      image: '/api/placeholder/192/128'
-    },
-    {
-      id: 2,
-      title: 'Advanced Web Development',
-      instructor: 'Jane Smith',
-      category: 'Development',
-      duration: 8,
-      students: 428,
-      lessons: 42,
-      price: 79.99,
-      level: 'Advanced',
-      image: '/api/placeholder/192/128'
-    },
-    {
-      id: 3,
-      title: 'Digital Marketing Fundamentals',
-      instructor: 'Mike Johnson',
-      category: 'Marketing',
-      duration: 6,
-      students: 312,
-      lessons: 32,
-      price: 59.99,
-      level: 'Intermediate',
-      image: '/api/placeholder/192/128'
+
+const EditCourseModal = ({ isOpen, onClose, updateCourse, setCourses }) => {  
+  const [newCourse, setNewCourse] = useState({  
+      "code": "",
+      "name": "",
+      "title": "",
+      "status": "",
+      "description": "",
+      "requirement": "",
+      "price": "",
+      "category": "",
+      "languages": [] 
+  });  
+
+  const [thumbnailPreview, setThumbnailPreview] = useState('/api/placeholder/192/128');
+
+  const categories = [  
+    'Photography', 'Development', 'Marketing', 'Business'  
+  ];  
+
+  const languages = [
+    { value: 'English', label: 'English' },
+    { value: 'Vietnamese', label: 'Vietnamese' },
+    { value: 'Spanish', label: 'Spanish' },
+    { value: 'French', label: 'French' },
+    { value: 'German', label: 'German' },
+    { value: 'Chinese', label: 'Chinese' }
+   
+  ];
+
+  const handleInputChange = (e) => {  
+    const { name, value } = e.target;  
+    setNewCourse(prev => ({  
+      ...prev,  
+      [name]: value  
+    })); 
+  };  
+
+  const handleLanguagesChange = (selected) => {
+    setNewCourse(prev => ({  
+      ...prev,  
+      languages: selected 
+    })); 
+  };
+
+  const handleSubmit = async (e) => {  
+    e.preventDefault();  
+    const formData = new FormData();
+    Object.keys(newCourse).forEach((key) => {
+      if (key === 'languages') {
+        newCourse.languages.forEach((language) => formData.append('language', language)); // Multiple languages
+      } else if (key === 'thumbnail') {
+        formData.append('thumbnail', newCourse.thumbnail);
+      } else {
+        formData.append(key, newCourse[key]);
+      }
+    });
+    try {
+      const token = localStorage.getItem('JWT_TOKEN');
+      const config = {headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${token}`,
+      }};
+      const res = await axios.put('http://localhost:8080/api/courses/update', formData, config);
+      api.get('/courses/teacher')
+      .then((res) => {
+        setCourses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+      toast.success("Course edit successfully");
+      setNewCourse({  // Reset form
+        "code": "",
+        "name": "",
+        "title": "",
+        "status": "",
+        "description": "",
+        "requirement": "",
+        "price": "",
+        "category": "",
+        "languages": [] 
+      });
+      setThumbnailPreview('/api/placeholder/192/128');
+      onClose();
     }
-  ]);
+    catch (err) {
+      console.error(err);
+      toast.error("Failed to edit course");
+    } 
+      
+  };  
+  useEffect(() => {
+    setNewCourse({
+      "code": updateCourse.code,
+      "name": updateCourse.name,
+      "title": updateCourse.title,
+      "status": updateCourse.status,
+      "description": updateCourse.description,
+      "requirement": updateCourse.requirement,
+      "price": updateCourse.price,
+      "category": updateCourse.category,
+      "languages": updateCourse.languages 
+    });
+  }, [updateCourse]);
+
+
+  if (!isOpen) return null;  
+  return (  
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">  
+      <div className="bg-white rounded-lg shadow-xl w-[800px] p-6 relative">  
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">  
+          <X className="w-6 h-6" />  
+        </button>  
+        <h2 className="text-xl font-semibold mb-4">Add New Course</h2>  
+        <form onSubmit={handleSubmit}>  
+          <div className="flex gap-6">  
+            {/* Right side - Form Fields */}
+            <div className="flex-1 space-y-4">
+            <input  
+                type="text"  
+                name="code"  
+                value={newCourse.code}  
+                onChange={handleInputChange}  
+                placeholder="Code Course"  
+                className="w-full p-2 border rounded" 
+                disabled   
+            /> 
+
+            <input  
+                type="text"  
+                name="name"  
+                value={newCourse.name}  
+                onChange={handleInputChange}  
+                placeholder="Course Name"  
+                className="w-full p-2 border rounded"    
+            />
+
+            <input  
+              type="text"  
+              name="title"  
+              value={newCourse.title}  
+              onChange={handleInputChange}  
+              placeholder="Course Title"  
+              className="w-full p-2 border rounded"  
+              required  
+            />  
+
+            <select  
+              name="status"  
+              value={newCourse.status}  
+              onChange={handleInputChange}  
+              className="w-full p-2 border rounded"  
+              required  
+            >  
+              <option key={`In progress`} value={`In progress`}>In progress</option>
+              <option key={"Done"} value={"Done"}>{"Done"}</option>  
+            </select>
+
+            <textarea  
+              name="description"  
+              value={newCourse.description}  
+              onChange={handleInputChange}  
+              placeholder="Course Description"  
+              className="w-full p-2 border rounded h-20"  
+            />  
+
+            <input  
+              type="text"  
+              name="requirement"  
+              value={newCourse.requirement}  
+              onChange={handleInputChange}  
+              placeholder="Courses Requirement"  
+              className="w-full p-2 border rounded"  
+              min="1"  
+            />  
+
+            <input  
+              type="text"  
+              name="price"  
+              value={newCourse.price}  
+              onChange={handleInputChange}  
+              placeholder="Course Price"  
+              className="w-full p-2 border rounded"  
+            />
+
+            <select  
+              name="category"  
+              value={newCourse.category}  
+              onChange={handleInputChange}  
+              className="w-full p-2 border rounded"  
+              required  
+            >  
+              <option value="">Select Category</option>  
+              {categories.map(cat => (  
+                <option key={cat} value={cat}>{cat}</option>  
+              ))}  
+            </select> 
+              
+             <MultiSelect
+              options={languages}
+              selected={newCourse.languages}
+              onChange={handleLanguagesChange}
+              label="Select Languages"
+             />
+            </div>
+          </div>  
+          <div className="flex justify-end space-x-2 mt-4">  
+            <button  
+              type="button"  
+              onClick={onClose}  
+              className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50"  
+            >  
+              Cancel  
+            </button>  
+            <button  
+              type="submit"  
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"  
+            >  
+              Edit Course  
+            </button>  
+          </div>  
+        </form>  
+      </div>  
+    </div>  
+  );  
+}; 
+
+const CourseListing = () => {  
+  const [courses, setCourses] = useState([]);
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);  
+  const [isUpdateCourseModalOpen, setIsUpdateCourseModalOpen] = useState(false);  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [updateCourse, setUpdateCourse] = useState({  // Reset form
+    "code": "",
+    "name": "",
+    "title": "",
+    "duration": 0,
+    "status": "",
+    "rating": 0,
+    "description": "",
+    "requirement": "",
+    "thumbnail": "",
+    "price": "",
+    "numberOfLearner": 0,
+    "teacherName": "",
+    "category": "",
+    "numberOfLessons": 0,
+    "languages": []
+  });
 
   const handleAddCourse = (newCourse) => {  
     setCourses(prevCourses => [...prevCourses, newCourse]);  
@@ -447,7 +694,25 @@ const CourseListing = () => {
 
   const handleDeleteCourse = (courseId) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
-      setCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
+      try {
+        api.delete(`/courses/${courseId}`)
+        .then(() => {
+          setCourses(prevCourses => prevCourses.filter(course => course.id !== courseId));
+          return api.get('/courses/teacher');
+        })
+        .then((res) => {
+          setCourses(res.data.data);
+          toast.success("Course deleted successfully");
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Failed to delete course");
+        });
+      }
+      catch (err) {
+        console.error(err);
+        toast.error("Failed to delete course");
+      }
     }
   };
 
@@ -485,29 +750,12 @@ const CourseListing = () => {
       setCurrentPage(1);
     };
 
-  // Search and Filter Logic
-  const filteredCourses = courses.filter(course => {
-    const searchMatch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const categoryMatch = selectedCategories.length === 0 || 
-                         selectedCategories.includes(course.category.toLowerCase());
-    
-    const instructorMatch = selectedInstructors.length === 0 ||
-                           selectedInstructors.includes(course.instructor.toLowerCase());
-    
-    const levelMatch = selectedLevels.length === 0 ||
-                      selectedLevels.includes(course.level.toLowerCase());
-    
-    return searchMatch && categoryMatch && instructorMatch && levelMatch;
-  });
-
   // Pagination Logic
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const totalPages = Math.ceil(courses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCourses = filteredCourses.slice(startIndex, endIndex);
+  const currentCourses = courses.slice(startIndex, endIndex);
 
   // Reset page when filters change
   useEffect(() => {
@@ -521,46 +769,30 @@ const CourseListing = () => {
     return () => clearTimeout(timer);
   }, [searchTerm, selectedCategories, selectedInstructors, selectedLevels, currentPage]);
 
+  useEffect(() => {
+    api.get('/courses/teacher')
+    .then((res) => {
+      setCourses(res.data.data);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+  }
+  ,[])
+  // useEffect(() => {
+  //   api.get('/courses/teacher')
+  //   .then((res) => {
+  //     setCourses(res.data.data);
+  //   })
+  //   .catch((err) => {
+  //     console.error(err);
+  //   });
+  // }
+  // ,[updateCourse])
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex gap-8">
-        {/* Filters Sidebar */}
-        <div className="w-64 flex-shrink-0">
-          <div className="sticky top-4">
-            <div className="relative mb-6">
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2 pr-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
-            </div>
-
-            <FilterSection
-              title="Course Category"
-              options={categories}
-              selected={selectedCategories}
-              onChange={handleCategoryChange}
-            />
-
-            {/* <FilterSection
-              title="Instructors"
-              options={instructors}
-              selected={selectedInstructors}
-              onChange={handleInstructorChange}
-            /> */}
-
-            <FilterSection
-              title="Level"
-              options={levels}
-              selected={selectedLevels}
-              onChange={handleLevelChange}
-            />
-          </div>
-        </div>
-
         {/* Course Listings */}
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
@@ -579,11 +811,14 @@ const CourseListing = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
           ) : currentCourses.length > 0 ? (
-            currentCourses.map((course) => (
+            currentCourses.map((c) => (
               <CourseCard 
-                key={course.id} 
-                course={course} 
+                key={c.id} 
+                course={c} 
                 onDelete={handleDeleteCourse}
+                setUpdateCourse = {setUpdateCourse}
+                setIsUpdateCourseModalOpen={setIsUpdateCourseModalOpen}
+                courseArr = {courses}
               />
             ))
           ) : (
@@ -593,7 +828,7 @@ const CourseListing = () => {
           )}
 
           {/* Pagination */}
-          {filteredCourses.length > itemsPerPage && (
+          {courses.length > itemsPerPage && (
             <div className="flex justify-center gap-2 mt-8">
               <button 
                 className="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
@@ -630,6 +865,14 @@ const CourseListing = () => {
             isOpen={isAddCourseModalOpen}  
             onClose={() => setIsAddCourseModalOpen(false)}  
             onAddCourse={handleAddCourse}  
+            updateCourse={updateCourse}
+            setCourses={setCourses}
+          />  
+          <EditCourseModal   
+            isOpen={isUpdateCourseModalOpen}  
+            onClose={() => setIsUpdateCourseModalOpen(false)}  
+            updateCourse={updateCourse}
+            setCourses={setCourses}
           />  
         </div>
       </div>
@@ -638,11 +881,3 @@ const CourseListing = () => {
 };
 
 export default CourseListing;
-
-
-
-
-
-
-
-

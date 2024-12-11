@@ -1,5 +1,3 @@
-// import React from 'react';  
-
 
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
@@ -13,7 +11,20 @@ const CourseCard = ({ course }) => {
 
   const handleViewMore = () => {
     navigate(`/course/${course.code}`);
-  };``
+  };
+
+  // Star rating display
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className={`text-lg ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}>
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Card className="mb-4 overflow-hidden">
@@ -29,10 +40,13 @@ const CourseCard = ({ course }) => {
           <div className="text-sm text-gray-600 mb-1">
             <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
-          <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-          <div className="text-sm text-gray-600 mb-2">by {course.teacherName}</div>
+          <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
+          <div className="text-sm text-gray-600 mb-2 flex items-center gap-3">
+            <span>by {course.teacherName}</span>
+            <StarRating rating={course.rating} />
+          </div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
-            <span>{course.duration} Weeks</span>
+            <span>{course.duration} Minutes</span>
             <span>{course.numberOfLearner} Students</span>
             <span>Rating: {course.rating}</span>
             <span>{course.numberOfLessons} Lessons</span>
@@ -74,102 +88,74 @@ const FilterSection = ({ title, options, selected, onChange }) => (
   </div>
 );
 
+// Ratings Filter Section
+const RatingsFilterSection = ({ selectedRatings, onChange }) => (
+  <div className="mb-6">
+    <h3 className="font-semibold mb-2">Instructor Rating</h3>
+    {[5, 4, 3, 2, 1].map((rating) => (
+      <div key={rating} className="flex items-center justify-between mb-1">
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={selectedRatings.includes(rating)}
+            onChange={() => onChange(rating)}
+            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <div className="flex items-center">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span 
+                key={star} 
+                className={`text-lg ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}
+              >
+                ★
+              </span>
+            ))}
+            <span className="ml-2 text-sm"></span>
+          </div>
+        </label>
+      </div>
+    ))}
+  </div>
+);
+
 // Main CourseListing Component
 const CourseListing = () => {
   // States
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm1, setSearchTerm1] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sample Data
   const [sampleCourses, setSampleCourses] = useState([]);
 
-  const categories = [
-    { label: 'Photography', value: 'photography', count: 15 },
-    { label: 'Development', value: 'development', count: 12 },
-    { label: 'Marketing', value: 'marketing', count: 8 },
-    { label: 'Business', value: 'business', count: 10 },
-  ];
-
-  const instructors = [
-    { label: 'John Doe', value: 'john-doe', count: 5 },
-    { label: 'Jane Smith', value: 'jane-smith', count: 4 },
-    { label: 'Mike Johnson', value: 'mike-johnson', count: 3 },
-  ];
-
-  const levels = [
-    { label: 'Beginner', value: 'beginner', count: 12 },
-    { label: 'Intermediate', value: 'intermediate', count: 8 },
-    { label: 'Advanced', value: 'advanced', count: 5 },
-  ];
-
-  // Filter Handlers
-  const handleCategoryChange = (value) => {
-    setSelectedCategories(prev => {
-      const isSelected = prev.includes(value);
+  
+  const handleRatingChange = (rating) => {
+    setSelectedRatings(prev => {
+      const isSelected = prev.includes(rating);
       if (isSelected) {
-        return prev.filter(v => v !== value);
+        return prev.filter(r => r !== rating);
       }
-      return [...prev, value];
-    });
-    setCurrentPage(1); // Reset to first page when filter changes
-  };
-
-  const handleInstructorChange = (value) => {
-    setSelectedInstructors(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
+      return [...prev, rating];
     });
     setCurrentPage(1);
   };
 
-  const handleLevelChange = (value) => {
-    setSelectedLevels(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1);
-  };
-
-  // Search and Filter Logic
-  const filteredCourses = sampleCourses.filter(course => {
-    const searchMatch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const categoryMatch = selectedCategories.length === 0 || 
-                         selectedCategories.includes(course.category.toLowerCase());
-    
-    const instructorMatch = selectedInstructors.length === 0 ||
-                           selectedInstructors.includes(course.instructor.toLowerCase());
-    
-    const levelMatch = selectedLevels.length === 0 ||
-                      selectedLevels.includes(course.level.toLowerCase());
-    
-    return searchMatch && categoryMatch && instructorMatch && levelMatch;
-  });
-
-  // Pagination Logic
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const totalPages = Math.ceil(sampleCourses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCourses = filteredCourses.slice(startIndex, endIndex);
+  const currentCourses = sampleCourses.slice(startIndex, endIndex);
 
-  // Simulated loading effect
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, [searchTerm, selectedCategories, selectedInstructors, selectedLevels, currentPage]);
+
   useEffect(() => {
     api.get('/courses?searchFlag=0')
       .then((res) => {
@@ -182,12 +168,25 @@ const CourseListing = () => {
   }
   , []);
 
+  useEffect(() => {
+    api.get(`/courses?searchFlag=1&teacherName=${searchTerm1}&title=${searchTerm}&rating=${selectedRatings}`)
+      .then((res) => {
+        console.log(res.data.data);
+        setSampleCourses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+  , [searchTerm, searchTerm1, selectedRatings]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex gap-8">
         {/* Filters Sidebar */}
         <div className="w-64 flex-shrink-0">
           <div className="sticky top-4">
+            <h3 className="font-semibold mb-2">Search courses</h3>
             <div className="relative mb-6">
               <input
                 type="text"
@@ -202,25 +201,24 @@ const CourseListing = () => {
               <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
             </div>
 
-            <FilterSection
-              title="Course Category"
-              options={categories}
-              selected={selectedCategories}
-              onChange={handleCategoryChange}
-            />
+            <h3 className="font-semibold mb-2">Search teachers</h3>
+            <div className="relative mb-6">
+              <input
+                type="text"
+                placeholder="Search teachers..."
+                value={searchTerm1}
+                onChange={(e) => {
+                  setSearchTerm1(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full p-2 pr-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
+            </div>
 
-            <FilterSection
-              title="Instructors"
-              options={instructors}
-              selected={selectedInstructors}
-              onChange={handleInstructorChange}
-            />
-
-            <FilterSection
-              title="Level"
-              options={levels}
-              selected={selectedLevels}
-              onChange={handleLevelChange}
+            <RatingsFilterSection
+              selectedRatings={selectedRatings}
+              onChange={handleRatingChange}
             />
           </div>
         </div>
@@ -230,7 +228,7 @@ const CourseListing = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">All Courses</h1>
             <span className="text-gray-600">
-              Showing {filteredCourses.length} courses
+              Showing {sampleCourses.length} courses
             </span>
           </div>
           
@@ -249,7 +247,7 @@ const CourseListing = () => {
           )}
 
           {/* Pagination */}
-          {filteredCourses.length > 0 && (
+          {sampleCourses.length > 0 && (
             <div className="flex justify-center gap-2 mt-8">
               <button 
                 className="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
