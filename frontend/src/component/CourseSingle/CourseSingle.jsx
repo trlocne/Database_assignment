@@ -426,7 +426,7 @@ export const CourseSingle = () => {
             case 'course-content':
                 return (
                     <div className='py-[20px] px-[30px]'>
-                        <div className='pb-[20px]'>{courseOverview.description}</div>
+                        <div className='pb-[20px]'>{courseOverview.title}</div>
                         <CourseDisplay course={courseContent} />
                     </div>)
             case 'review':
@@ -474,7 +474,7 @@ export const CourseSingle = () => {
                     <div className='w-[850px]'>
                         <div>
                             <div className='text-[36px] font-semibold leading-[120%]'>
-                                {courseOverview.title}
+                                {courseOverview.name}
                             </div>
                             <div className='pt-[20px]'>   
                                 by <span className='text-[#cacaca]'>{courseOverview.teacherName}</span>
