@@ -29,7 +29,6 @@ public interface CourseRepository extends JpaRepository<Course, String> {
     @Procedure(procedureName = "GetCoursesByTitleAndRating")
     List<Course> findCourseWithFilterDB(
             @Param("TeacherName") String teacherName,
-            @Param("Status") String status,
             @Param("Title") String title,
             @Param("Rating") BigDecimal rating
     );
@@ -61,5 +60,15 @@ public interface CourseRepository extends JpaRepository<Course, String> {
             @Param("Number_Of_Learner") int numberOfLearner,
             @Param("Teacher_ID") int teacherId,
             @Param("Category") String category
+    );
+
+    @Query(value = "select c from Course c " +
+            "JOIN c.teacher t " +
+            "WHERE t.id = :teacherId")
+    List<Course> findCoursesByTeacherId(@Param("teacherId") Integer teacherId);
+
+    @Procedure(procedureName = "DeleteCourse")
+    void deleteByCode(
+            @Param("Course_Code") String courseCode
     );
 }

@@ -51,7 +51,7 @@ public class Course {
     @Column(name = "price")
     private String price;
 
-    @Column(name = "pumber_of_learner")
+    @Column(name = "number_of_learner")
     private Integer numberOfLearner;  // Nullable field
 
     @ManyToOne

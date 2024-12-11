@@ -27,36 +27,63 @@ public class CourseController {
         }
     }
 
-//    @GetMapping("")
-//    public ResponseEntity<?> getAllCourses(@RequestParam(defaultValue = "0") Boolean searchFlag,
-//                                           @RequestParam(required = false) String category,
-//                                           @RequestParam(required = false) String teacherName,
-//                                           @RequestParam(required = false) String requirement) {
-//        try {
-//            if (searchFlag==Boolean.TRUE) {
-//                return ResponseEntity.ok(courseService.getAllCourses(category, teacherName, requirement));
-//            }
-//            return ResponseEntity.ok(courseService.getAll());
-//        }catch (Exception e) {
-//            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
-//        }
-//    }
+    @PutMapping("/update")
+    public ResponseEntity<?> updateCourse(@ModelAttribute CourseRequest request) {
+        try {
+            return ResponseEntity.ok(courseService.updateCourse(request));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
+        }
+    }
+
+    @DeleteMapping("/{code}")
+    public ResponseEntity<?> deleteCourse(@PathVariable String code) {
+        try {
+            return ResponseEntity.ok(courseService.deleteCourse(code));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/{code}/signed-course")
+    public ResponseEntity<?> signedCourse(@PathVariable String code) {
+        try {
+            return ResponseEntity.ok(courseService.signedCourse(code));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
+        }
+    }
 
     @GetMapping("")
     public ResponseEntity<?> getAllCourses(@RequestParam(defaultValue = "0") Boolean searchFlag,
-                                           @RequestParam(required = false) String status,
                                            @RequestParam(required = false) String teacherName,
                                            @RequestParam(required = false) String title,
-                                           @RequestParam(required = false) BigDecimal rating){
+                                           @RequestParam(required = false) BigDecimal rating) {
         try {
             if (searchFlag==Boolean.TRUE) {
-                return ResponseEntity.ok(courseService.getFilterDBMS(teacherName, status, title, rating));
+                return ResponseEntity.ok(courseService.getFilterDBMS(teacherName, title, rating));
             }
             return ResponseEntity.ok(courseService.getAll());
         }catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
         }
     }
+
+//    @GetMapping("")
+//    public ResponseEntity<?> getAllCourses(@RequestParam(defaultValue = "0") Boolean searchFlag,
+//                                           @RequestParam(required = false) String status,
+//                                           @RequestParam(required = false) String teacherName,
+//                                           @RequestParam(required = false) String title,
+//                                           @RequestParam(required = false) BigDecimal rating){
+//        try {
+//            if (searchFlag==Boolean.TRUE) {
+//                return ResponseEntity.ok(courseService.getFilterDBMS(teacherName, status, title, rating));
+//            }
+//            return ResponseEntity.ok(courseService.getAll());
+//        }catch (Exception e) {
+//            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
+//        }
+//    }
 
     @GetMapping("/{code}")
     public ResponseEntity<?> getCourseByCode(@PathVariable String code) {
@@ -107,6 +134,16 @@ public class CourseController {
     public ResponseEntity<?> getVideo(@PathVariable String code) {
         try {
             return ResponseEntity.ok(courseService.getVideo(code));
+        }catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/teacher")
+    @PreAuthorize("hasRole('ROLE_TEACHER')")
+    public ResponseEntity<?> getCourseByTeacher() {
+        try {
+            return ResponseEntity.ok(courseService.findCoursesByTeacher());
         }catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(400, e.getMessage(), null));
         }

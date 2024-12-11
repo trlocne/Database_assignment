@@ -15,12 +15,15 @@ import org.springframework.web.filter.RequestContextFilter;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 public class CourseService {
@@ -75,8 +78,9 @@ public class CourseService {
         return new ApiResponse<>(200, "success", courseResponses);
     }
 
-    public ApiResponse<?> getFilterDBMS(String teacherName, String status, String title, BigDecimal rating){
-        List<CourseResponse> courseResponses = courseRepository.findCourseWithFilterDB(teacherName, status, title, rating).stream().map(CourseResponse::toCourseResponse).toList();
+    @Transactional(readOnly = true)
+    public ApiResponse<?> getFilterDBMS(String teacherName, String title, BigDecimal rating){
+        List<CourseResponse> courseResponses = courseRepository.findCourseWithFilterDB(teacherName, title, rating).stream().map(CourseResponse::toCourseResponse).toList();
         return new ApiResponse<>(200, "success", courseResponses);
     }
 
@@ -163,7 +167,7 @@ public class CourseService {
     public ApiResponse<?> updateCourse(CourseRequest request){
         Course course = courseRepository.findById(request.getCode()).orElseThrow(() -> new RuntimeException("Course not found for code: " + request.getCode()));
         // set new data
-        courseRepository.updateCourse(request.getCode(), request.getName(), request.getTitle(), request.getDuration(), request.getStatus(), request.getRating(), request.getDescription(), request.getRequirement(), course.getThumbnail(), request.getPrice(), 0, course.getTeacher().getId(), request.getCategory());
+        courseRepository.updateCourse(request.getCode(), request.getName(), request.getTitle(), request.getDuration(), request.getStatus(), request.getRating(), request.getDescription(), request.getRequirement(), course.getThumbnail(), request.getPrice(), course.getNumberOfLearner(), course.getTeacher().getId(), request.getCategory());
         for(String language : request.getLanguage()){
             languageRepository.updateLanguage(request.getCode(), language);
         }
@@ -172,7 +176,7 @@ public class CourseService {
 
     public ApiResponse<?> deleteCourse(String courseCode){
         if(!courseRepository.existsByCode(courseCode)) throw new RuntimeException("Course code does not exist");
-        courseRepository.deleteById(courseCode);
+        courseRepository.deleteByCode(courseCode);
         return new ApiResponse<>(200, "Course has been deleted success", null);
     }
 
@@ -218,5 +222,10 @@ public class CourseService {
                 .status(200)
                 .message("Success")
                 .data(courseDetailResponse).build();
+    }
+
+    public ApiResponse<?> findCoursesByTeacher(){
+        List<CourseResponse> courseResponses = courseRepository.findCoursesByTeacherId(authUtil.loggedInUserId()).stream().map(CourseResponse::toCourseResponse).toList();
+        return new ApiResponse<>(200, "success", courseResponses);
     }
 }
