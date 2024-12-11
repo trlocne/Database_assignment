@@ -11,8 +11,6 @@ const CourseCard = ({ course }) => {
 
   const handleViewMore = () => {
     navigate(`/course/${course.code}`);
-  };``
-    navigate(`/course/${course.id}`);
   };
 
   // Star rating display
