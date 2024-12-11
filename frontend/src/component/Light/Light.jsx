@@ -25,33 +25,20 @@ import { CommentItem } from "../CommentItem/index.jsx";
 import { Pagination } from "@mui/material";
 import { NotificationContext } from "../../App.jsx";
 import QuestionList from "../QuestionList/QuestionList.jsx";
-const VideoPlayer = () => {
+import api from "../../hooks/api.js";
+import { useParams } from "react-router-dom";
+import YoutubeVideo from "../YoutubeVideo/YoutubeVideo.jsx";
+const VideoPlayer = ({source}) => {
   const [currentTime, setCurrentTime] = useState("05:42");
   const [duration, setDuration] = useState("08:23");
 
   return (
-    <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-full h-full bg-purple-600/20" />
-      </div>
-
-      {/* Video Controls */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-        <div className="flex items-center gap-4">
-          <Play className="w-6 h-6 text-white cursor-pointer" />
-          <RotateCcw className="w-5 h-5 text-white cursor-pointer" />
-
-          {/* Progress Bar */}
-          <div className="flex-1 h-1 bg-white/30 rounded-full">
-            <div className="w-2/3 h-full bg-white rounded-full" />
-          </div>
-
-          <span className="text-white text-sm">{currentTime}</span>
-          <span className="text-white/60 text-sm">{duration}</span>
-          <Settings className="w-5 h-5 text-white cursor-pointer" />
-          <Maximize2 className="w-5 h-5 text-white cursor-pointer" />
-        </div>
-      </div>
+    <div>
+      <h2>My Video</h2>
+      <video width="600" controls>
+        <source src={source} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
     </div>
   );
 };
@@ -69,85 +56,7 @@ const LMSInterface = () => {
   const dispatch = useDispatch();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [futureTime, setFutureTime] = useState(null);
-  const [lectures, setLectures] = useState([
-    {
-      Chapter: 1,
-      Number: 1,
-      LName: "Introduction to Programming - Lecture 1",
-      Video: "intro_programming.mp4",
-      Time_of_lecture: 30,
-    },
-    {
-      Chapter: 1,
-      Number: 2,
-      LName: "Introduction to Programming - Lecture 2",
-      Video: "intro_programming_2.mp4",
-      Time_of_lecture: 30,
-    },
-    {
-      Chapter: 1,
-      LName: "demo",
-      Number: 3,
-      Time_of_lecture: 1,
-      isQuiz: true,
-    },
-    {
-      Chapter: 2,
-      Number: 1,
-      LName: "Variables and Data Types - Lecture 1",
-      Video: "variables_data_types.mp4",
-      Time_of_lecture: 45,
-    },
-    {
-      Chapter: 2,
-      Number: 2,
-      LName: "Variables and Data Types - Lecture 2",
-      Video: "variables_data_types_2.mp4",
-      Time_of_lecture: 45,
-    },
-    {
-      Chapter: 3,
-      Number: 1,
-      LName: "Control Structures - Lecture 1",
-      Video: "control_structures.mp4",
-      Time_of_lecture: 60,
-    },
-    {
-      Chapter: 3,
-      Number: 2,
-      LName: "Control Structures - Lecture 2",
-      Video: "control_structures_2.mp4",
-      Time_of_lecture: 60,
-    },
-    {
-      Chapter: 4,
-      Number: 1,
-      LName: "Functions and Modular Programming - Lecture 1",
-      Video: "functions_modular_programming.mp4",
-      Time_of_lecture: 75,
-    },
-    {
-      Chapter: 4,
-      Number: 2,
-      LName: "Functions and Modular Programming - Lecture 2",
-      Video: "functions_modular_programming_2.mp4",
-      Time_of_lecture: 75,
-    },
-    {
-      Chapter: 5,
-      Number: 1,
-      LName: "Basic Debugging Techniques - Lecture 1",
-      Video: "debugging_techniques.mp4",
-      Time_of_lecture: 40,
-    },
-    {
-      Chapter: 5,
-      Number: 2,
-      LName: "Basic Debugging Techniques - Lecture 2",
-      Video: "debugging_techniques_2.mp4",
-      Time_of_lecture: 40,
-    },
-  ]);
+  const [lectures, setLectures] = useState([]);
 
   const [materials, setMaterials] = useState([
     {
@@ -211,38 +120,7 @@ const LMSInterface = () => {
       Material: "debugging_techniques_2_material.pdf",
     },
   ]);
-  const [sections, setSections] = useState([
-    {
-      Chapter: 1,
-      Title: "Introduction to Programming",
-      Amount_Of_Time: 30,
-      Number_Of_Lecture: 2,
-    },
-    {
-      Chapter: 2,
-      Title: "Variables and Data Types",
-      Amount_Of_Time: 45,
-      Number_Of_Lecture: 3,
-    },
-    {
-      Chapter: 3,
-      Title: "Control Structures",
-      Amount_Of_Time: 60,
-      Number_Of_Lecture: 4,
-    },
-    {
-      Chapter: 4,
-      Title: "Functions and Modular Programming",
-      Amount_Of_Time: 75,
-      Number_Of_Lecture: 5,
-    },
-    {
-      Chapter: 5,
-      Title: "Basic Debugging Techniques",
-      Amount_Of_Time: 40,
-      Number_Of_Lecture: 3,
-    },
-  ]);
+  const [sections, setSections] = useState([]);
   const [actualItems, setActualItems] = useState([]);
   const [stateOpenKeys, setStateOpenKeys] = useState(["1"]);
   const [pickedLecture, setPickedLecture] = useState({});
@@ -426,6 +304,7 @@ const LMSInterface = () => {
       comment_childen: [],
     },
   ]);
+  const {id} = useParams();
   const [pageComment, setPageComment] = useState(1);
   const [commentA, setCommentA] = useState([]);
   const [renderOption, setRenderOption] = useState(1);
@@ -436,35 +315,10 @@ const LMSInterface = () => {
   const [sectionForm] = Form.useForm();
   const [isQuizModalVisible, setIsQuizModalVisible] = useState(false);
   const [quizForm] = Form.useForm();
-  const [questionBank, setQuestionBank] = useState([
-    {
-      id: 1,
-      text: "What is a variable?",
-      type: "multiple_choice",
-      sampleAnswer: null,
-      options: ["s", "r", "e", "r"],
-      correctOption: 0,
-    },
-    {
-      id: 2,
-      text: "What is a variable?",
-      type: "multiple_choice",
-      sampleAnswer: null,
-      options: ["s", "r", "e", "r"],
-      correctOption: 0,
-    },
-    {
-      id: 3,
-      text: "What is a variable?",
-      type: "multiple_choice",
-      sampleAnswer: null,
-      options: ["s", "r", "e", "r"],
-      correctOption: 0,
-    },
-    // Add more sample questions as needed
-  ]);
+  const [questionBank, setQuestionBank] = useState([]);
   const { takingQuiz, isTakingQuizModal } = useSelector(videoState);
   const [isTakingQuizModalOpen, setIsTakingQuizModalOpen] = useState(false);
+  const [specificQuiz, setSpecificQuiz] = useState([]);
   console.log("questionbank: ", questionBank);
   // Đây là ví dụ question
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -475,6 +329,8 @@ const LMSInterface = () => {
   const [comments, setComments] = useState({}); // { courseId: [comments] }
   const [newComment, setNewComment] = useState("");
   const [currentCourseId, setCurrentCourseId] = useState(null); // ID của khóa học hiện tại
+  const [currentChapter,setCurrentChapter]=useState();
+  const [quiz, setQuiz] = useState([]);
   const handleCommentSubmit = () => {
   if (newComment.trim() && currentCourseId) {
     const commentToAdd = {
@@ -513,18 +369,15 @@ const handlePageComment = (event, value) => {
 </div> 
   const handleAddNewQuestion = () => {
     questionForm.validateFields().then((values) => {
+      console.log("values of questionForm: ", values);
       const newQuestion = {
-        id: questionBank.length + 1,
-        text: values.questionText,
-        type: values.questionType,
-        options:
-          values.questionType === "multiple_choice" ? values.options : null,
-        correctOption:
-          values.questionType === "multiple_choice" ? correctOption : null,
-        sampleAnswer:
+        questionCode: (questionBank.length + 1).toString(),
+        content: values.questionType !== "essay"?`${values.questionText} - ${values.options[0]} - ${values.options[1]} - ${values.options[2]} - ${values.options[3]}`:values.questionText,
+        questionType: values.questionType,
+        answers:
           values.questionType === "essay" ? values.sampleAnswer : null,
       };
-
+      console.log("newQuestion: ", newQuestion);
       setQuestionBank((prev) => [...prev, newQuestion]);
       questionForm.resetFields();
       setCorrectOption(0);
@@ -532,10 +385,10 @@ const handlePageComment = (event, value) => {
   };
   useEffect(() => {
     const future = new Date(
-      currentTime.getTime() + pickedLecture?.Time_of_lecture * 60 * 1000
+      currentTime.getTime() + pickedLecture?.homeworkTime * 60 * 1000
     ); // Thêm timeQuantity giây
     setFutureTime(future);
-  }, [currentTime, pickedLecture?.isQuiz]);
+  }, [currentTime, pickedLecture?.code]);
 
   useEffect(() => {
     let start = 3 * (pageComment - 1);
@@ -545,13 +398,41 @@ const handlePageComment = (event, value) => {
 
   useEffect(() => {
     handleLectureForSection();
-  }, []);
+  }, [sections]);
 
+  // useEffect(() => {
+  //   if (pickedLecture?.code) setIsTakingQuizModalOpen(true);
+  //   else setIsTakingQuizModalOpen(false);
+  //   console.log("bạn vào useEffect cho pickedLecture");
+  // }, [pickedLecture]);
+
+  const handleAPISections=async()=>{
+    const newSections=await api.get(`/courses/${id}/video`);
+  console.log("newSections: ", newSections.data.data.courseContent.sections);
+  setSections(newSections.data.data.courseContent.sections);
+  let newLecture=[];
+  newSections.data.data.courseContent.sections.forEach((section)=>{
+    section.lectures.forEach((lecture)=>{
+      
+      const tempLecture={...lecture, Chapter: section.chapter};
+      newLecture.push(tempLecture);
+    })
+  })
+  let newQuiz=[];
+ 
+  newSections.data.data.courseContent.sections.forEach((section)=>{
+    let order=section.lectures.length;
+    section.quizzes.forEach((quiz)=>{
+      const tempQuiz={...quiz, Chapter: section.chapter,number:++order};
+      newQuiz.push(tempQuiz);
+    })
+  })
+  setQuiz(newQuiz);
+  setLectures(newLecture);
+}
   useEffect(() => {
-    if (pickedLecture?.isQuiz) setIsTakingQuizModalOpen(true);
-    else setIsTakingQuizModalOpen(false);
-    console.log("bạn vào useEffect cho pickedLecture");
-  }, [pickedLecture]);
+    handleAPISections();
+  },[])
 
   useEffect(() => {
     if (selectedQuestion) {
@@ -605,6 +486,7 @@ const handlePageComment = (event, value) => {
   };
   const levelKeys = getLevelKeys(actualItems);
   console.log("actualItems: ", actualItems);
+
   const getDropdownMenu = (section) => ({
     items: [
       {
@@ -628,39 +510,58 @@ const handlePageComment = (event, value) => {
       },
     ],
   });
+
   const handleLectureForSection = () => {
     let temp_items = [];
+    console.log("section in hanldelectureFoSection: ", sections);
     sections.forEach((s, index) => {
       let tempObject = {};
       tempObject["key"] = (index + 1).toString();
       tempObject["label"] = (
         <div className="flex items-center justify-between">
-          <span>{s.Title}</span>
+          <span>{s.sectionTitle}</span>
           <Dropdown menu={getDropdownMenu(s)} trigger={["click"]}>
             <PlusCircleOutlined
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                setCurrentChapter(s.chapter);
+              }}
               className="ml-2 text-blue-500 hover:text-blue-700"
             />
           </Dropdown>
         </div>
       );
       let children = [];
+      let cnt=0;
       lectures.forEach((l, index_) => {
-        if (l.Chapter === s.Chapter) {
+        if (l.Chapter === s.chapter) {
+          cnt++;
           let tempLecture = {};
           tempLecture["key"] = `${
-            (index + 1).toString() + l.Number.toString()
+            (index + 1).toString() + l.number.toString()
           }`;
-          tempLecture["label"] = l.LName;
+          tempLecture["label"] = l.lectureName;
           tempLecture["icon"] = <FontAwesomeIcon icon={faCircle} />;
           children.push(tempLecture);
+        }
+      });
+      quiz.forEach((q, index_) => {
+        if (q.Chapter === s.chapter) {
+          cnt++;
+          let tempQuiz= {};
+          tempQuiz["key"] = `${
+            (index + 1).toString() + (cnt).toString()
+          }`;
+          tempQuiz["label"] = q.title;
+          tempQuiz["icon"] = <FontAwesomeIcon icon={faCircle} />;
+          children.push(tempQuiz);
         }
       });
       tempObject["children"] = children;
       temp_items.push(tempObject);
     });
     setActualItems(temp_items);
-    setPickedLecture(lectures[0]);
+   
   };
 
   const renderMaterials = () => {
@@ -721,7 +622,7 @@ const handlePageComment = (event, value) => {
       setStateOpenKeys(openKeys);
     }
   };
-
+  console.log("quiz: ",quiz)
   const handlePickLecture = (infor) => {
     // setIsTakingQuizModalOpen(true);
     console.log("infor: ", infor);
@@ -729,24 +630,31 @@ const handlePageComment = (event, value) => {
 
     console.log("infor: ", infor);
     const key = Number(infor.key);
-    const chapter = Math.floor(key / 10);
+    let chapter = Math.floor(key / 10)-1;
+ 
     const orderInChapter = key % 10;
-
+    let numberOfLecture=sections[chapter].lectures.length;
+    console.log("section: ", sections[chapter].quizzes[orderInChapter-numberOfLecture-1]);
+//chapter no luon lon hon chapter that 1 don vi
     console.log("chapter - order: ", chapter, orderInChapter);
     const pickedLectureTemp = lectures.find((l, idx) => {
-      return l.Chapter === chapter && l.Number == orderInChapter;
+      console.log("l@@@@@@@@@@: ", l);
+      return l.Chapter === chapter && l.number === orderInChapter;
     });
     console.log("pickedLectureTemp: ", pickedLectureTemp);
-    setPickedLecture(pickedLectureTemp);
-    if (pickedLectureTemp.isQuiz) {
+    setPickedLecture(pickedLectureTemp || sections[chapter].quizzes[orderInChapter-numberOfLecture-1]);
+    if (!pickedLectureTemp) {
+      console.log("bạn vào if code");
+      setSpecificQuiz(sections[chapter].quizzes[orderInChapter-numberOfLecture-1].questions);
       setIsTakingQuizModalOpen(true);
       return;
     }
-    if (pickedLectureTemp.isQuiz === undefined) {
+    if (pickedLectureTemp?.code === undefined) {
       dispatch(updateTakingQuiz(false));
+      setIsTakingQuizModalOpen
       console.log("bạn vào handlepick");
     }
-    setCurrentCourseId(courseId);
+    setCurrentCourseId(currentCourseId);
   };
 
   const handleCompleteLecture = () => {
@@ -758,14 +666,14 @@ const handlePageComment = (event, value) => {
     // ]);
 
     let tempItemsList = [...actualItems];
-    tempItemsList[pickedLecture.Chapter - 1].children[pickedLecture.Number - 1][
+    tempItemsList[pickedLecture.Chapter].children[pickedLecture.number - 1][
       "icon"
     ] = <FontAwesomeIcon icon={faCircleCheck} />;
     setActualItems(tempItemsList);
   };
 
   const handleRenderOption = () => {
-    if (pickedLecture.isQuiz) return;
+    if (pickedLecture?.code) return;
     if (renderOption === 1)
       return (
         <div className="mt-4">
@@ -790,26 +698,32 @@ const handlePageComment = (event, value) => {
   };
 
   const handleModalOk = () => {
-    form.validateFields().then((values) => {
+    form.validateFields().then(async(values) => {
       // Create new lecture object using selectedSection's Chapter
+    const nextLectureNumber =
+    selectedSection.lectures && selectedSection.lectures.length > 0
+      ? Math.max(...selectedSection.lectures.map((lecture) => lecture.number)) + 1
+      : 1;
+      console.log("nextLectureNumber - selectedsection: ", nextLectureNumber,selectedSection);
       const newLecture = {
-        Chapter: selectedSection.Chapter, // Use the chapter from selectedSection
-        Number: parseInt(values.Number),
-        LName: values.LName,
-        Video: values.Video,
-        Time_of_lecture: parseInt(values.Time_of_lecture),
+        chapter: selectedSection.chapter, // Use the chapter from selectedSection
+        number: parseInt(nextLectureNumber),
+        lectureName: values.LName,
+        videoUrl: values.Video,
+        // time_of_lecture: parseInt(values.Time_of_lecture),
       };
-
+      const response=await api.post(`/courses/${id}/sections/${selectedSection.chapter}/lectures`, newLecture);
+      console.log(`response of add lecture from handleModalOk: `, response);
       // Add new lecture to lectures array
-      setLectures((prevLectures) => [...prevLectures, newLecture]);
+      handleAPISections();
 
       // Update the menu items to show new lecture
       const tempItems = [...actualItems];
-      const chapterIndex = newLecture.Chapter - 1;
+      const chapterIndex = newLecture.chapter - 1;
 
       const newMenuItem = {
-        key: `${newLecture.Chapter}${newLecture.Number}`,
-        label: newLecture.LName,
+        key: `${newLecture.chapter}${newLecture.number}`,
+        label: newLecture.l_name,
         icon: <FontAwesomeIcon icon={faCircle} />,
       };
 
@@ -833,29 +747,34 @@ const handlePageComment = (event, value) => {
     setIsSectionModalVisible(true);
   };
 
-  const handleSectionModalOk = () => {
-    sectionForm.validateFields().then((values) => {
+  const handleSectionModalOk = async () => {
+    sectionForm.validateFields().then(async (values) => {
       // Automatically determine the next Chapter number
       const nextChapterNumber =
         sections.length > 0
-          ? Math.max(...sections.map((s) => s.Chapter)) + 1
+          ? Math.max(...sections.map((s) => s.chapter)) + 1
           : 1;
 
       const newSection = {
-        Chapter: nextChapterNumber,
-        Title: values.Title,
-        Amount_Of_Time: 0, // Assign a default value or modify as needed
-        Number_Of_Lecture: 0, // Assign a default value or modify as needed
+        chapter: nextChapterNumber,
+        title: values.Title,
+        amount_of_time: 0, // Assign a default value or modify as needed
+        number_of_lecture: 0, // Assign a default value or modify as needed
       };
-
-      setSections((prev) => [...prev, newSection]);
+      console.log("currentCourseId: ", id);
+      const response = await api.post(`/courses/${id}/sections`, newSection);
+      console.log(
+        "response from handleok about sections add: ",
+        response
+      );
+      handleAPISections();
 
       // Add new section to menu with a unique key
       const newMenuItem = {
-        key: newSection.Chapter.toString(),
+        key: newSection.chapter.toString(),
         label: (
           <div className="flex items-center justify-between">
-            <span>{newSection.Title}</span>
+            <span>{newSection.title}</span>
             <Dropdown menu={getDropdownMenu(newSection)} trigger={["click"]}>
               <PlusCircleOutlined
                 onClick={(e) => e.stopPropagation()}
@@ -880,34 +799,18 @@ const handlePageComment = (event, value) => {
   };
 
   const handleQuizModalOk = () => {
-    quizForm.validateFields().then((values) => {
+    quizForm.validateFields().then(async(values) => {
       const newQuiz = {
-        Chapter: selectedSection.Chapter,
-        Number:
-          lectures.filter((l) => l.Chapter === selectedSection.Chapter).length +
-          1,
-        LName: values.title,
-        isQuiz: true,
-        Time_of_lecture: parseInt(values.duration),
+        code: `QUIZ${lectures.length + 1}_${Date.now()}`,
+        title: values.title,
+        homeworkTime: parseInt(values.duration),
+        passScore:8.5,
+        questions:questionBank
       };
-
+      const response=await api.post(`/courses/${id}/sections/${currentChapter}/quizzes`, newQuiz);
+      console.log("response of add quiz from handleQuizModalOk: ", response);
       // Add new quiz to lectures array
-      setLectures((prevLectures) => [...prevLectures, newQuiz]);
-
-      // Update the menu items
-      const tempItems = [...actualItems];
-      const chapterIndex = newQuiz.Chapter - 1;
-
-      const newMenuItem = {
-        key: `${newQuiz.Chapter}${newQuiz.Number}`,
-        label: `Quiz: ${newQuiz.LName}`,
-        icon: <FontAwesomeIcon icon={faCircle} />,
-      };
-
-      if (tempItems[chapterIndex]) {
-        tempItems[chapterIndex].children.push(newMenuItem);
-        setActualItems(tempItems);
-      }
+      handleAPISections();
 
       setIsQuizModalVisible(false);
       quizForm.resetFields();
@@ -1076,7 +979,13 @@ const handlePageComment = (event, value) => {
       </div>
     </Modal>
   );
-  console.log("pickedLecture: ", pickedLecture);
+
+  const getYoutubeVideoId=()=>{
+    const url=pickedLecture.video;
+    const videoId=url.split("v=")[1];
+    console.log("videoId: ", videoId);
+    return videoId;
+  }
   const renderHomeWorkTime = (date) => {
     const hours = date?.getHours().toString().padStart(2, "0");
     const minutes = date?.getMinutes().toString().padStart(2, "0");
@@ -1084,10 +993,11 @@ const handlePageComment = (event, value) => {
     return `${hours}:${minutes}:${seconds}`;
   };
   const renderContentOfTakingQuizModal = () => {
+  console.log("specificQuiz: ", specificQuiz);
     const content = isTakingQuizModal
       ? "Bạn đang thực hiện bài Quiz !!!"
       : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
-      Thời lượng: ${pickedLecture?.Time_of_lecture} phút
+      Thời lượng: ${pickedLecture?.homeworkTime} phút
       Time: ${renderHomeWorkTime(currentTime)} - ${renderHomeWorkTime(
           futureTime
         )}`;
@@ -1097,8 +1007,8 @@ const handlePageComment = (event, value) => {
         <br />
       </>
     ));
-  };
-
+  }
+  console.log("pickedLecture: ", pickedLecture);
   return (
     <>
       {/* modal để xác nhận lại xem người dùng có muốn làm quiz hay không */}
@@ -1148,6 +1058,7 @@ const handlePageComment = (event, value) => {
           <Form.Item name="Title" label="Tiêu đề" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
+        
         </Form>
       </Modal>
 
@@ -1160,25 +1071,25 @@ const handlePageComment = (event, value) => {
           <div className="col-span-2">
             {takingQuiz ? (
               <QuestionList
-                question={questionBank}
+                question={specificQuiz}
                 quizSection={pickedLecture}
               />
             ) : (
-              <VideoPlayer />
+              <YoutubeVideo videoId={getYoutubeVideoId}/>
             )}
 
             <div className="mt-4">
               <div
                 className={`flex ${
-                  pickedLecture?.isQuiz ? "justify-end" : "justify-between"
+                  pickedLecture?.code ? "justify-end" : "justify-between"
                 }`}
               >
-                {pickedLecture?.isQuiz ? (
+                {pickedLecture?.homeworkTime ? (
                   ""
                 ) : (
                   <>
                     <h2 className="text-xl font-semibold">
-                      {pickedLecture?.LName}
+                      {pickedLecture?.lectureName}
                     </h2>
                     <button
                       className=" py-1 px-4 bg-blue-500  rounded-lg text-white hover:bg-blue-400 h-fit"
@@ -1195,7 +1106,7 @@ const handlePageComment = (event, value) => {
                 <span className="text-gray-600">Sr. Product Designer</span>
               </div>
 
-              {pickedLecture.isQuiz !== undefined ? (
+              {pickedLecture?.code !== undefined ? (
                 ""
               ) : (
                 <div className="mt-4 border-t pt-4">
