@@ -1,5 +1,3 @@
-// import React from 'react';  
-
 
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
@@ -14,6 +12,21 @@ const CourseCard = ({ course }) => {
   const handleViewMore = () => {
     navigate(`/course/${course.code}`);
   };``
+    navigate(`/course/${course.id}`);
+  };
+
+  // Star rating display
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className={`text-lg ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}>
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Card className="mb-4 overflow-hidden">
@@ -30,7 +43,10 @@ const CourseCard = ({ course }) => {
             <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
           <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-          <div className="text-sm text-gray-600 mb-2">by {course.teacherName}</div>
+          <div className="text-sm text-gray-600 mb-2 flex items-center gap-3">
+            <span>by {course.instructor}</span>
+            <StarRating rating={course.instructorRating} />
+          </div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
             <span>{course.duration} Weeks</span>
             <span>{course.numberOfLearner} Students</span>
@@ -74,6 +90,36 @@ const FilterSection = ({ title, options, selected, onChange }) => (
   </div>
 );
 
+// Ratings Filter Section
+const RatingsFilterSection = ({ selectedRatings, onChange }) => (
+  <div className="mb-6">
+    <h3 className="font-semibold mb-2">Instructor Rating</h3>
+    {[5, 4, 3, 2, 1].map((rating) => (
+      <div key={rating} className="flex items-center justify-between mb-1">
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={selectedRatings.includes(rating)}
+            onChange={() => onChange(rating)}
+            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <div className="flex items-center">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span 
+                key={star} 
+                className={`text-lg ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}
+              >
+                ★
+              </span>
+            ))}
+            <span className="ml-2 text-sm"></span>
+          </div>
+        </label>
+      </div>
+    ))}
+  </div>
+);
+
 // Main CourseListing Component
 const CourseListing = () => {
   // States
@@ -81,11 +127,53 @@ const CourseListing = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sample Data
-  const [sampleCourses, setSampleCourses] = useState([]);
+  // Sample Data with added instructor rating
+  const sampleCourses = [
+    {
+      id: 1,
+      title: 'Introduction to Photography',
+      instructor: 'John Doe',
+      instructorRating: 4,
+      category: 'Photography',
+      duration: 4,
+      students: 256,
+      lessons: 24,
+      price: 49.99,
+      level: 'Beginner',
+      image: '/api/placeholder/192/128'
+    },
+    {
+      id: 2,
+      title: 'Advanced Web Development',
+      instructor: 'Jane Smith',
+      instructorRating: 5,
+      category: 'Development',
+      duration: 8,
+      students: 428,
+      lessons: 42,
+      price: 79.99,
+      level: 'Advanced',
+      image: '/api/placeholder/192/128'
+    },
+    {
+      id: 3,
+      title: 'Digital Marketing Fundamentals',
+      instructor: 'Mike Johnson',
+      instructorRating: 3,
+      category: 'Marketing',
+      duration: 6,
+      students: 312,
+      lessons: 32,
+      price: 59.99,
+      level: 'Intermediate',
+      image: '/api/placeholder/192/128'
+    },
+    // Add more sample courses as needed
+  ];
 
   const categories = [
     { label: 'Photography', value: 'photography', count: 15 },
@@ -115,7 +203,7 @@ const CourseListing = () => {
       }
       return [...prev, value];
     });
-    setCurrentPage(1); // Reset to first page when filter changes
+    setCurrentPage(1);
   };
 
   const handleInstructorChange = (value) => {
@@ -140,6 +228,17 @@ const CourseListing = () => {
     setCurrentPage(1);
   };
 
+  const handleRatingChange = (rating) => {
+    setSelectedRatings(prev => {
+      const isSelected = prev.includes(rating);
+      if (isSelected) {
+        return prev.filter(r => r !== rating);
+      }
+      return [...prev, rating];
+    });
+    setCurrentPage(1);
+  };
+
   // Search and Filter Logic
   const filteredCourses = sampleCourses.filter(course => {
     const searchMatch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,7 +253,10 @@ const CourseListing = () => {
     const levelMatch = selectedLevels.length === 0 ||
                       selectedLevels.includes(course.level.toLowerCase());
     
-    return searchMatch && categoryMatch && instructorMatch && levelMatch;
+    const ratingMatch = selectedRatings.length === 0 ||
+                       selectedRatings.some(rating => course.instructorRating >= rating);
+    
+    return searchMatch && categoryMatch && instructorMatch && levelMatch && ratingMatch;
   });
 
   // Pagination Logic
@@ -191,7 +293,7 @@ const CourseListing = () => {
             <div className="relative mb-6">
               <input
                 type="text"
-                placeholder="Search courses..."
+                placeholder="Search courses or teachers..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -202,25 +304,23 @@ const CourseListing = () => {
               <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
             </div>
 
-            <FilterSection
+            {/* <FilterSection
               title="Course Category"
               options={categories}
               selected={selectedCategories}
               onChange={handleCategoryChange}
-            />
+            /> */}
 
-            <FilterSection
+            {/* <FilterSection
               title="Instructors"
               options={instructors}
               selected={selectedInstructors}
               onChange={handleInstructorChange}
-            />
+            /> */}
 
-            <FilterSection
-              title="Level"
-              options={levels}
-              selected={selectedLevels}
-              onChange={handleLevelChange}
+            <RatingsFilterSection
+              selectedRatings={selectedRatings}
+              onChange={handleRatingChange}
             />
           </div>
         </div>
