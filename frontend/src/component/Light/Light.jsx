@@ -28,7 +28,7 @@ import QuestionList from "../QuestionList/QuestionList.jsx";
 import api from "../../hooks/api.js";
 import { useParams } from "react-router-dom";
 import YoutubeVideo from "../YoutubeVideo/YoutubeVideo.jsx";
-const VideoPlayer = ({source}) => {
+const VideoPlayer = ({ source }) => {
   const [currentTime, setCurrentTime] = useState("05:42");
   const [duration, setDuration] = useState("08:23");
 
@@ -304,7 +304,7 @@ const LMSInterface = () => {
       comment_childen: [],
     },
   ]);
-  const {id} = useParams();
+  const { id } = useParams();
   const [pageComment, setPageComment] = useState(1);
   const [commentA, setCommentA] = useState([]);
   const [renderOption, setRenderOption] = useState(1);
@@ -329,53 +329,55 @@ const LMSInterface = () => {
   const [comments, setComments] = useState({}); // { courseId: [comments] }
   const [newComment, setNewComment] = useState("");
   const [currentCourseId, setCurrentCourseId] = useState(null); // ID của khóa học hiện tại
-  const [currentChapter,setCurrentChapter]=useState();
+  const [currentChapter, setCurrentChapter] = useState();
   const [quiz, setQuiz] = useState([]);
   const handleCommentSubmit = () => {
-  if (newComment.trim() && currentCourseId) {
-    const commentToAdd = {
-      id: Date.now(),
-      comment: newComment,
-      user: { name: "User  Name", avatar: "https://via.placeholder.com/150" },
-      time: new Date().toLocaleString(),
-      rating: null,
-      comment_children: [],
-    };
+    if (newComment.trim() && currentCourseId) {
+      const commentToAdd = {
+        id: Date.now(),
+        comment: newComment,
+        user: { name: "User  Name", avatar: "https://via.placeholder.com/150" },
+        time: new Date().toLocaleString(),
+        rating: null,
+        comment_children: [],
+      };
 
-    setComments((prev) => ({
-      ...prev,
-      [currentCourseId]: [...(prev[currentCourseId] || []), commentToAdd],
-    }));
+      setComments((prev) => ({
+        ...prev,
+        [currentCourseId]: [...(prev[currentCourseId] || []), commentToAdd],
+      }));
 
-    setNewComment(""); // Reset ô nhập bình luận
-  }
-};
-const handlePageComment = (event, value) => {
-  setPageComment(value);
-};
-<div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
-  <div className="min-h-[430px]">
-    {comments[currentCourseId]?.map((comment) => (
-      <CommentItem key={comment.id} comment={comment} />
-    ))}
-  </div>
-  <Pagination
-    count={Math.ceil((comments[currentCourseId]?.length || 0) / 3)}
-    siblingCount={0}
-    page={pageComment}
-    onChange={handlePageComment}
-    className="flex flex-col items-center"
-  />
-</div> 
+      setNewComment(""); // Reset ô nhập bình luận
+    }
+  };
+  const handlePageComment = (event, value) => {
+    setPageComment(value);
+  };
+  <div className="py-[20px] px-[30px] pt-[30px] pb-[40px]">
+    <div className="min-h-[430px]">
+      {comments[currentCourseId]?.map((comment) => (
+        <CommentItem key={comment.id} comment={comment} />
+      ))}
+    </div>
+    <Pagination
+      count={Math.ceil((comments[currentCourseId]?.length || 0) / 3)}
+      siblingCount={0}
+      page={pageComment}
+      onChange={handlePageComment}
+      className="flex flex-col items-center"
+    />
+  </div>;
   const handleAddNewQuestion = () => {
     questionForm.validateFields().then((values) => {
       console.log("values of questionForm: ", values);
       const newQuestion = {
         questionCode: (questionBank.length + 1).toString(),
-        content: values.questionType !== "essay"?`${values.questionText} - ${values.options[0]} - ${values.options[1]} - ${values.options[2]} - ${values.options[3]}`:values.questionText,
+        content:
+          values.questionType !== "essay"
+            ? `${values.questionText} - ${values.options[0]} - ${values.options[1]} - ${values.options[2]} - ${values.options[3]}`
+            : values.questionText,
         questionType: values.questionType,
-        answers:
-          values.questionType === "essay" ? values.sampleAnswer : null,
+        answers: values.questionType === "essay" ? values.sampleAnswer : null,
       };
       console.log("newQuestion: ", newQuestion);
       setQuestionBank((prev) => [...prev, newQuestion]);
@@ -406,33 +408,32 @@ const handlePageComment = (event, value) => {
   //   console.log("bạn vào useEffect cho pickedLecture");
   // }, [pickedLecture]);
 
-  const handleAPISections=async()=>{
-    const newSections=await api.get(`/courses/${id}/video`);
-  console.log("newSections: ", newSections.data.data.courseContent.sections);
-  setSections(newSections.data.data.courseContent.sections);
-  let newLecture=[];
-  newSections.data.data.courseContent.sections.forEach((section)=>{
-    section.lectures.forEach((lecture)=>{
-      
-      const tempLecture={...lecture, Chapter: section.chapter};
-      newLecture.push(tempLecture);
-    })
-  })
-  let newQuiz=[];
- 
-  newSections.data.data.courseContent.sections.forEach((section)=>{
-    let order=section.lectures.length;
-    section.quizzes.forEach((quiz)=>{
-      const tempQuiz={...quiz, Chapter: section.chapter,number:++order};
-      newQuiz.push(tempQuiz);
-    })
-  })
-  setQuiz(newQuiz);
-  setLectures(newLecture);
-}
+  const handleAPISections = async () => {
+    const newSections = await api.get(`/courses/${id}/video`);
+    console.log("newSections: ", newSections.data.data.courseContent.sections);
+    setSections(newSections.data.data.courseContent.sections);
+    let newLecture = [];
+    newSections.data.data.courseContent.sections.forEach((section) => {
+      section.lectures.forEach((lecture) => {
+        const tempLecture = { ...lecture, Chapter: section.chapter };
+        newLecture.push(tempLecture);
+      });
+    });
+    let newQuiz = [];
+
+    newSections.data.data.courseContent.sections.forEach((section) => {
+      let order = section.lectures.length;
+      section.quizzes.forEach((quiz) => {
+        const tempQuiz = { ...quiz, Chapter: section.chapter, number: ++order };
+        newQuiz.push(tempQuiz);
+      });
+    });
+    setQuiz(newQuiz);
+    setLectures(newLecture);
+  };
   useEffect(() => {
     handleAPISections();
-  },[])
+  }, []);
 
   useEffect(() => {
     if (selectedQuestion) {
@@ -523,7 +524,7 @@ const handlePageComment = (event, value) => {
           <Dropdown menu={getDropdownMenu(s)} trigger={["click"]}>
             <PlusCircleOutlined
               onClick={(e) => {
-                e.stopPropagation()
+                e.stopPropagation();
                 setCurrentChapter(s.chapter);
               }}
               className="ml-2 text-blue-500 hover:text-blue-700"
@@ -532,7 +533,7 @@ const handlePageComment = (event, value) => {
         </div>
       );
       let children = [];
-      let cnt=0;
+      let cnt = 0;
       lectures.forEach((l, index_) => {
         if (l.Chapter === s.chapter) {
           cnt++;
@@ -548,10 +549,8 @@ const handlePageComment = (event, value) => {
       quiz.forEach((q, index_) => {
         if (q.Chapter === s.chapter) {
           cnt++;
-          let tempQuiz= {};
-          tempQuiz["key"] = `${
-            (index + 1).toString() + (cnt).toString()
-          }`;
+          let tempQuiz = {};
+          tempQuiz["key"] = `${(index + 1).toString() + cnt.toString()}`;
           tempQuiz["label"] = q.title;
           tempQuiz["icon"] = <FontAwesomeIcon icon={faCircle} />;
           children.push(tempQuiz);
@@ -561,7 +560,6 @@ const handlePageComment = (event, value) => {
       temp_items.push(tempObject);
     });
     setActualItems(temp_items);
-   
   };
 
   const renderMaterials = () => {
@@ -622,7 +620,7 @@ const handlePageComment = (event, value) => {
       setStateOpenKeys(openKeys);
     }
   };
-  console.log("quiz: ",quiz)
+  console.log("quiz: ", quiz);
   const handlePickLecture = (infor) => {
     // setIsTakingQuizModalOpen(true);
     console.log("infor: ", infor);
@@ -630,28 +628,39 @@ const handlePageComment = (event, value) => {
 
     console.log("infor: ", infor);
     const key = Number(infor.key);
-    let chapter = Math.floor(key / 10)-1;
- 
+    let chapter = Math.floor(key / 10) - 1;
+
     const orderInChapter = key % 10;
-    let numberOfLecture=sections[chapter].lectures.length;
-    console.log("section: ", sections[chapter].quizzes[orderInChapter-numberOfLecture-1]);
-//chapter no luon lon hon chapter that 1 don vi
+    let numberOfLecture = sections[chapter].lectures.length;
+    console.log(
+      "section: ",
+      sections[chapter].quizzes[orderInChapter - numberOfLecture - 1]
+    );
+    //chapter no luon lon hon chapter that 1 don vi
     console.log("chapter - order: ", chapter, orderInChapter);
     const pickedLectureTemp = lectures.find((l, idx) => {
       console.log("l@@@@@@@@@@: ", l);
       return l.Chapter === chapter && l.number === orderInChapter;
     });
+    //chapter- code - number
+    const pickedQuizTemp = quiz.find;
     console.log("pickedLectureTemp: ", pickedLectureTemp);
-    setPickedLecture(pickedLectureTemp || sections[chapter].quizzes[orderInChapter-numberOfLecture-1]);
+    setPickedLecture(
+      pickedLectureTemp ||
+        sections[chapter].quizzes[orderInChapter - numberOfLecture - 1]
+    );
     if (!pickedLectureTemp) {
       console.log("bạn vào if code");
-      setSpecificQuiz(sections[chapter].quizzes[orderInChapter-numberOfLecture-1].questions);
+      setSpecificQuiz(
+        sections[chapter].quizzes[orderInChapter - numberOfLecture - 1]
+          .questions
+      );
       setIsTakingQuizModalOpen(true);
       return;
     }
     if (pickedLectureTemp?.code === undefined) {
       dispatch(updateTakingQuiz(false));
-      setIsTakingQuizModalOpen
+      setIsTakingQuizModalOpen;
       console.log("bạn vào handlepick");
     }
     setCurrentCourseId(currentCourseId);
@@ -698,13 +707,19 @@ const handlePageComment = (event, value) => {
   };
 
   const handleModalOk = () => {
-    form.validateFields().then(async(values) => {
+    form.validateFields().then(async (values) => {
       // Create new lecture object using selectedSection's Chapter
-    const nextLectureNumber =
-    selectedSection.lectures && selectedSection.lectures.length > 0
-      ? Math.max(...selectedSection.lectures.map((lecture) => lecture.number)) + 1
-      : 1;
-      console.log("nextLectureNumber - selectedsection: ", nextLectureNumber,selectedSection);
+      const nextLectureNumber =
+        selectedSection.lectures && selectedSection.lectures.length > 0
+          ? Math.max(
+              ...selectedSection.lectures.map((lecture) => lecture.number)
+            ) + 1
+          : 1;
+      console.log(
+        "nextLectureNumber - selectedsection: ",
+        nextLectureNumber,
+        selectedSection
+      );
       const newLecture = {
         chapter: selectedSection.chapter, // Use the chapter from selectedSection
         number: parseInt(nextLectureNumber),
@@ -712,7 +727,10 @@ const handlePageComment = (event, value) => {
         videoUrl: values.Video,
         // time_of_lecture: parseInt(values.Time_of_lecture),
       };
-      const response=await api.post(`/courses/${id}/sections/${selectedSection.chapter}/lectures`, newLecture);
+      const response = await api.post(
+        `/courses/${id}/sections/${selectedSection.chapter}/lectures`,
+        newLecture
+      );
       console.log(`response of add lecture from handleModalOk: `, response);
       // Add new lecture to lectures array
       handleAPISections();
@@ -763,10 +781,7 @@ const handlePageComment = (event, value) => {
       };
       console.log("currentCourseId: ", id);
       const response = await api.post(`/courses/${id}/sections`, newSection);
-      console.log(
-        "response from handleok about sections add: ",
-        response
-      );
+      console.log("response from handleok about sections add: ", response);
       handleAPISections();
 
       // Add new section to menu with a unique key
@@ -799,15 +814,18 @@ const handlePageComment = (event, value) => {
   };
 
   const handleQuizModalOk = () => {
-    quizForm.validateFields().then(async(values) => {
+    quizForm.validateFields().then(async (values) => {
       const newQuiz = {
         code: `QUIZ${lectures.length + 1}_${Date.now()}`,
         title: values.title,
         homeworkTime: parseInt(values.duration),
-        passScore:8.5,
-        questions:questionBank
+        passScore: 8.5,
+        questions: questionBank,
       };
-      const response=await api.post(`/courses/${id}/sections/${currentChapter}/quizzes`, newQuiz);
+      const response = await api.post(
+        `/courses/${id}/sections/${currentChapter}/quizzes`,
+        newQuiz
+      );
       console.log("response of add quiz from handleQuizModalOk: ", response);
       // Add new quiz to lectures array
       handleAPISections();
@@ -980,12 +998,12 @@ const handlePageComment = (event, value) => {
     </Modal>
   );
 
-  const getYoutubeVideoId=()=>{
-    const url=pickedLecture.video;
-    const videoId=url.split("v=")[1];
+  const getYoutubeVideoId = () => {
+    const url = pickedLecture.video;
+    const videoId = url.split("v=")[1];
     console.log("videoId: ", videoId);
     return videoId;
-  }
+  };
   const renderHomeWorkTime = (date) => {
     const hours = date?.getHours().toString().padStart(2, "0");
     const minutes = date?.getMinutes().toString().padStart(2, "0");
@@ -993,7 +1011,7 @@ const handlePageComment = (event, value) => {
     return `${hours}:${minutes}:${seconds}`;
   };
   const renderContentOfTakingQuizModal = () => {
-  console.log("specificQuiz: ", specificQuiz);
+    console.log("specificQuiz: ", specificQuiz);
     const content = isTakingQuizModal
       ? "Bạn đang thực hiện bài Quiz !!!"
       : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
@@ -1007,7 +1025,7 @@ const handlePageComment = (event, value) => {
         <br />
       </>
     ));
-  }
+  };
   console.log("pickedLecture: ", pickedLecture);
   return (
     <>
@@ -1058,7 +1076,6 @@ const handlePageComment = (event, value) => {
           <Form.Item name="Title" label="Tiêu đề" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-        
         </Form>
       </Modal>
 
@@ -1075,7 +1092,7 @@ const handlePageComment = (event, value) => {
                 quizSection={pickedLecture}
               />
             ) : (
-              <YoutubeVideo videoId={getYoutubeVideoId}/>
+              <YoutubeVideo videoId={getYoutubeVideoId} />
             )}
 
             <div className="mt-4">
