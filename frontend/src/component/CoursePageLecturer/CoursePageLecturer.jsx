@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';  
-import { Search, Plus, X, Trash2, Upload, Check } from 'lucide-react';  
+import { Search, Plus, X, Trash2, Upload, Check, Edit } from 'lucide-react';  
 import { Card, CardContent } from '../ui/card';  
 import { useNavigate } from 'react-router-dom';  
 
@@ -68,11 +68,30 @@ const MultiSelect = ({ options, selected, onChange, label }) => {
     </div>
   );
 };
-const CourseCard = ({ course, onDelete }) => {
+
+const CourseCard = ({ course, onDelete, onEdit, setUpdateCourse,setIsUpdateCourseModalOpen, courseArr }) => {
+ 
+
+  const handleUpdateCourse = () => {
+    setUpdateCourse(course)
+    setIsUpdateCourseModalOpen(true)
+  }
+  
   const navigate = useNavigate();
 
   const handleViewMore = () => {
     navigate(`/course/${course.id}`);
+  };
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className={`text-lg ${star <= rating ? 'text-yellow-500' : 'text-gray-300'}`}>
+            ★
+          </span>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -86,25 +105,37 @@ const CourseCard = ({ course, onDelete }) => {
           />
         </div>
         <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div className="text-sm text-gray-600 mb-1">
-              <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
-            </div>
-            <button 
-              onClick={() => onDelete(course.id)}
-              className="text-red-500 hover:text-red-700 transition-colors"
-              title="Delete course"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+        <div className="flex justify-between items-start">
+          <div className="text-sm text-gray-600 mb-1">
+            <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
+          <div className="flex items-center gap-2">
+              <button 
+                onClick={() => handleUpdateCourse()}
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+                title="Edit course"
+              >
+                <Edit className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => onDelete(course.id)}
+                className="text-red-500 hover:text-red-700 transition-colors"
+                title="Delete course"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+            </div>
           <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-          <div className="text-sm text-gray-600 mb-2">by {course.instructor}</div>
+          <div className="text-sm text-gray-600 mb-2 flex items-center gap-3">
+            <span>by {course.instructor}</span>
+            <StarRating rating={course.instructorRating} />
+          </div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
             <span>{course.duration} Weeks</span>
             <span>{course.students} Students</span>
-            <span>{course.lessons} Lessons</span>
             <span>{course.level}</span>
+            <span>{course.lessons} Lessons</span>
           </div>
           <div className="flex justify-between items-center mt-4">
             <div className="font-semibold">
@@ -121,7 +152,6 @@ const CourseCard = ({ course, onDelete }) => {
     </Card>
   );
 };
-
 
 const categories = [
   { value: 'photography', label: 'Photography', count: 15 },
@@ -162,7 +192,7 @@ const FilterSection = ({ title, options, selected, onChange }) => (
   </div>
 );
 
-const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {  
+const AddCourseModal = ({ isOpen, onClose, onAddCourse, updateCourse, setIsUpdateCourseModalOpen, isUpdateCourseModalOpen= false, courseArr = [], setCourses = () => {}, setUpdateCourse }) => {  
   const [newCourse, setNewCourse] = useState({  
     title: '',  
     instructor: '',  
@@ -206,24 +236,46 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
 
   const handleInputChange = (e) => {  
     const { name, value } = e.target;  
+    if(isUpdateCourseModalOpen) {
+      setUpdateCourse(prev => ({  
+        ...prev,  
+        [name]: value  
+      })); 
+      return
+    }
     setNewCourse(prev => ({  
       ...prev,  
       [name]: value  
-    }));  
+    })); 
+
   };  
 
   const handleTopicsChange = (selected) => {
-    setNewCourse(prev => ({
-      ...prev,
-      topics: selected
-    }));
+    if(isUpdateCourseModalOpen) {
+      setUpdateCourse(prev => ({  
+        ...prev,  
+        topics: selected  
+      })); 
+      return
+    }
+    setNewCourse(prev => ({  
+      ...prev,  
+      topics: selected  
+    })); 
   };
 
   const handleLanguagesChange = (selected) => {
-    setNewCourse(prev => ({
-      ...prev,
-      language: selected
-    }));
+    if(isUpdateCourseModalOpen) {
+      setUpdateCourse(prev => ({  
+        ...prev,  
+        language: selected  
+      })); 
+      return
+    }
+    setNewCourse(prev => ({  
+      ...prev,  
+      language: selected 
+    })); 
   };
 
   const handleImageUpload = (e) => {
@@ -232,6 +284,13 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setThumbnailPreview(reader.result);
+        if(isUpdateCourseModalOpen) {
+          setUpdateCourse(prev => ({  
+            ...prev,  
+            image: reader.result  
+          })); 
+          return
+        } 
         setNewCourse(prev => ({
           ...prev,
           image: reader.result
@@ -244,10 +303,37 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
 
   const handleSubmit = (e) => {  
     e.preventDefault();  
-    if (!newCourse.title || !newCourse.category || !newCourse.instructor) {  
+    if ((!newCourse.title || !newCourse.category || !newCourse.instructor) && (!updateCourse.title || !updateCourse.category || !updateCourse.instructor) ) {  
       alert('Please fill in required fields');  
+
       return;  
     }  
+    if(isUpdateCourseModalOpen){
+
+      let newCourse=[...courseArr];
+      const index = newCourse.findIndex((c) => Number(c.id) === Number(updateCourse.id));
+    console.log("22233333: ",index)
+
+    newCourse[index]=updateCourse;
+    setCourses(newCourse)
+    onClose();
+    setUpdateCourse({
+      title: '',  
+    instructor: '',  
+    category: '',  
+    duration: '',  
+    code: '',
+    language: [],
+    // students: '0',  
+    // lessons: '',  
+    price: '',
+    //level: '',
+    requirement: '',
+    image: '/api/placeholder/192/128',
+    topics: [] 
+    })
+    return
+    }
 
     const courseToAdd = {  
       ...newCourse,  
@@ -312,7 +398,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
             <input  
               type="text"  
               name="title"  
-              value={newCourse.title}  
+              value={newCourse.title || updateCourse.title}  
               onChange={handleInputChange}  
               placeholder="Course Title"  
               className="w-full p-2 border rounded"  
@@ -321,7 +407,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
             <input  
               type="text"  
               name="instructor"  
-              value={newCourse.instructor}  
+              value={newCourse.instructor || updateCourse.instructor}  
               onChange={handleInputChange}  
               placeholder="Instructor Name"  
               className="w-full p-2 border rounded"  
@@ -329,7 +415,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
             />  
             <select  
               name="category"  
-              value={newCourse.category}  
+              value={newCourse.category || updateCourse.category}  
               onChange={handleInputChange}  
               className="w-full p-2 border rounded"  
               required  
@@ -361,7 +447,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               label="Select Topics"
              />
 
-              <input  
+              {/* <input  
                 type="number"  
                 name="duration"  
                 value={newCourse.duration}  
@@ -369,12 +455,12 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                 placeholder="Duration (days)"  
                 className="w-full p-2 border rounded"  
                 min="1"  
-              />  
+              />   */}
 
               <input  
                 type="text"  
                 name="requirement"  
-                value={newCourse.requirement}  
+                value={newCourse.requirement || updateCourse.requirement}  
                 onChange={handleInputChange}  
                 placeholder="Courses Requirement"  
                 className="w-full p-2 border rounded"  
@@ -391,7 +477,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               <input  
                 type="text"  
                 name="code"  
-                value={newCourse.code}  
+                value={newCourse.code || updateCourse.code}  
                 onChange={handleInputChange}  
                 placeholder="Code Course"  
                 className="w-full p-2 border rounded"  
@@ -401,7 +487,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
              <input  
               type="number"  
               name="price"  
-              value={newCourse.price}  
+              value={newCourse.price || updateCourse.price}  
               onChange={handleInputChange}  
               placeholder="Course Price"  
               className="w-full p-2 border rounded"  
@@ -410,7 +496,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
             />  
             <textarea  
               name="description"  
-              value={newCourse.description}  
+              value={newCourse.description || updateCourse.description}  
               onChange={handleInputChange}  
               placeholder="Course Description"  
               className="w-full p-2 border rounded h-20"  
@@ -444,6 +530,7 @@ const CourseListing = () => {
       id: 1,
       title: 'Introduction to Photography',
       instructor: 'John Doe',
+      instructorRating: 4,
       category: 'Photography',
       duration: 4,
       students: 256,
@@ -456,6 +543,7 @@ const CourseListing = () => {
       id: 2,
       title: 'Advanced Web Development',
       instructor: 'Jane Smith',
+      instructorRating: 5,
       category: 'Development',
       duration: 8,
       students: 428,
@@ -468,6 +556,7 @@ const CourseListing = () => {
       id: 3,
       title: 'Digital Marketing Fundamentals',
       instructor: 'Mike Johnson',
+      instructorRating: 3,
       category: 'Marketing',
       duration: 6,
       students: 312,
@@ -475,15 +564,30 @@ const CourseListing = () => {
       price: 59.99,
       level: 'Intermediate',
       image: '/api/placeholder/192/128'
-    }
+    },
   ]);
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);  
+  const [isUpdateCourseModalOpen, setIsUpdateCourseModalOpen] = useState(false);  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [updateCourse, setUpdateCourse] = useState({  // Reset form
+    title: '',  
+    instructor: '',  
+    category: '',  
+    duration: '',  
+    // students: '0',  
+    lessons: '',  
+    code: '',
+    requirement: '',
+    price: '',  
+    //level: '',  
+    language: [],
+    image: '/api/placeholder/192/128'  
+  });
 
   const handleAddCourse = (newCourse) => {  
     setCourses(prevCourses => [...prevCourses, newCourse]);  
@@ -623,11 +727,14 @@ const CourseListing = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
           ) : currentCourses.length > 0 ? (
-            currentCourses.map((course) => (
+            currentCourses.map((c) => (
               <CourseCard 
-                key={course.id} 
-                course={course} 
+                key={c.id} 
+                course={c} 
                 onDelete={handleDeleteCourse}
+                setUpdateCourse = {setUpdateCourse}
+                setIsUpdateCourseModalOpen={setIsUpdateCourseModalOpen}
+                courseArr = {courses}
               />
             ))
           ) : (
@@ -674,6 +781,18 @@ const CourseListing = () => {
             isOpen={isAddCourseModalOpen}  
             onClose={() => setIsAddCourseModalOpen(false)}  
             onAddCourse={handleAddCourse}  
+            updateCourse={updateCourse}
+
+          />  
+          <AddCourseModal   
+            isOpen={isUpdateCourseModalOpen}  
+            onClose={() => setIsUpdateCourseModalOpen(false)}  
+            updateCourse={updateCourse}
+            setIsUpdateCourseModalOpen={setIsUpdateCourseModalOpen}
+            isUpdateCourseModalOpen = {true}
+            courseArr = {courses}
+            setCourses = {setCourses}
+            setUpdateCourse={setUpdateCourse}
           />  
         </div>
       </div>
