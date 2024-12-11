@@ -7,7 +7,7 @@ const QuestionList = ({ question, quizSection }) => {
   const dispatch = useDispatch();
   const [isQuizDone, setIsQuizDone] = useState(false);
   const [countdown, setCountdown] = useState(
-    Number(quizSection.Time_of_lecture) * 60
+    Number(quizSection.homeworkTime) * 60
   );
   const [result, setResult] = useState(0);
   const [answers, setAnswers] = useState(Array(question?.length).fill(""));

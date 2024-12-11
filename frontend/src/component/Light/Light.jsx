@@ -318,6 +318,7 @@ const LMSInterface = () => {
   const [questionBank, setQuestionBank] = useState([]);
   const { takingQuiz, isTakingQuizModal } = useSelector(videoState);
   const [isTakingQuizModalOpen, setIsTakingQuizModalOpen] = useState(false);
+  const [specificQuiz, setSpecificQuiz] = useState([]);
   console.log("questionbank: ", questionBank);
   // Đây là ví dụ question
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -386,10 +387,10 @@ const LMSInterface = () => {
   };
   useEffect(() => {
     const future = new Date(
-      currentTime.getTime() + pickedLecture?.Time_of_lecture * 60 * 1000
+      currentTime.getTime() + pickedLecture?.homeworkTime * 60 * 1000
     ); // Thêm timeQuantity giây
     setFutureTime(future);
-  }, [currentTime, pickedLecture?.isQuiz]);
+  }, [currentTime, pickedLecture?.code]);
 
   useEffect(() => {
     let start = 3 * (pageComment - 1);
@@ -401,11 +402,11 @@ const LMSInterface = () => {
     handleLectureForSection();
   }, [sections]);
 
-  useEffect(() => {
-    if (pickedLecture?.isQuiz) setIsTakingQuizModalOpen(true);
-    else setIsTakingQuizModalOpen(false);
-    console.log("bạn vào useEffect cho pickedLecture");
-  }, [pickedLecture]);
+  // useEffect(() => {
+  //   if (pickedLecture?.code) setIsTakingQuizModalOpen(true);
+  //   else setIsTakingQuizModalOpen(false);
+  //   console.log("bạn vào useEffect cho pickedLecture");
+  // }, [pickedLecture]);
 
   const handleAPISections = async () => {
     const newSections = await api.get(`/courses/${id}/video`);
@@ -559,7 +560,6 @@ const LMSInterface = () => {
       temp_items.push(tempObject);
     });
     setActualItems(temp_items);
-    setPickedLecture(lectures[0]);
   };
 
   const renderMaterials = () => {
@@ -631,23 +631,36 @@ const LMSInterface = () => {
     let chapter = Math.floor(key / 10) - 1;
 
     const orderInChapter = key % 10;
+    let numberOfLecture = sections[chapter].lectures.length;
+    console.log(
+      "section: ",
+      sections[chapter].quizzes[orderInChapter - numberOfLecture - 1]
+    );
     //chapter no luon lon hon chapter that 1 don vi
-
     console.log("chapter - order: ", chapter, orderInChapter);
     const pickedLectureTemp = lectures.find((l, idx) => {
-      console.log("l: ", l);
+      console.log("l@@@@@@@@@@: ", l);
       return l.Chapter === chapter && l.number === orderInChapter;
     });
     //chapter- code - number
     const pickedQuizTemp = quiz.find;
     console.log("pickedLectureTemp: ", pickedLectureTemp);
-    setPickedLecture(pickedLectureTemp);
-    if (pickedLectureTemp?.code) {
+    setPickedLecture(
+      pickedLectureTemp ||
+        sections[chapter].quizzes[orderInChapter - numberOfLecture - 1]
+    );
+    if (!pickedLectureTemp) {
+      console.log("bạn vào if code");
+      setSpecificQuiz(
+        sections[chapter].quizzes[orderInChapter - numberOfLecture - 1]
+          .questions
+      );
       setIsTakingQuizModalOpen(true);
       return;
     }
     if (pickedLectureTemp?.code === undefined) {
       dispatch(updateTakingQuiz(false));
+      setIsTakingQuizModalOpen;
       console.log("bạn vào handlepick");
     }
     setCurrentCourseId(currentCourseId);
@@ -998,10 +1011,11 @@ const LMSInterface = () => {
     return `${hours}:${minutes}:${seconds}`;
   };
   const renderContentOfTakingQuizModal = () => {
+    console.log("specificQuiz: ", specificQuiz);
     const content = isTakingQuizModal
       ? "Bạn đang thực hiện bài Quiz !!!"
       : `Bạn có chắc chắn muốn thực hiện bài Quiz ?
-      Thời lượng: ${pickedLecture?.Time_of_lecture} phút
+      Thời lượng: ${pickedLecture?.homeworkTime} phút
       Time: ${renderHomeWorkTime(currentTime)} - ${renderHomeWorkTime(
           futureTime
         )}`;
@@ -1074,7 +1088,7 @@ const LMSInterface = () => {
           <div className="col-span-2">
             {takingQuiz ? (
               <QuestionList
-                question={questionBank}
+                question={specificQuiz}
                 quizSection={pickedLecture}
               />
             ) : (
@@ -1087,7 +1101,7 @@ const LMSInterface = () => {
                   pickedLecture?.code ? "justify-end" : "justify-between"
                 }`}
               >
-                {pickedLecture?.code ? (
+                {pickedLecture?.homeworkTime ? (
                   ""
                 ) : (
                   <>

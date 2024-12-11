@@ -40,13 +40,13 @@ const CourseCard = ({ course }) => {
           <div className="text-sm text-gray-600 mb-1">
             <span className="bg-gray-100 px-2 py-1 rounded">{course.category}</span>
           </div>
-          <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+          <h3 className="text-lg font-semibold mb-2">{course.name}</h3>
           <div className="text-sm text-gray-600 mb-2 flex items-center gap-3">
-            <span>by {course.instructor}</span>
-            <StarRating rating={course.instructorRating} />
+            <span>by {course.teacherName}</span>
+            <StarRating rating={course.rating} />
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-600">
-            <span>{course.duration} Weeks</span>
+            <span>{course.duration} Minutes</span>
             <span>{course.numberOfLearner} Students</span>
             <span>Rating: {course.rating}</span>
             <span>{course.numberOfLessons} Lessons</span>
@@ -122,6 +122,7 @@ const RatingsFilterSection = ({ selectedRatings, onChange }) => (
 const CourseListing = () => {
   // States
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm1, setSearchTerm1] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
@@ -129,103 +130,9 @@ const CourseListing = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sample Data with added instructor rating
-  const sampleCourses = [
-    {
-      id: 1,
-      title: 'Introduction to Photography',
-      instructor: 'John Doe',
-      instructorRating: 4,
-      category: 'Photography',
-      duration: 4,
-      students: 256,
-      lessons: 24,
-      price: 49.99,
-      level: 'Beginner',
-      image: '/api/placeholder/192/128'
-    },
-    {
-      id: 2,
-      title: 'Advanced Web Development',
-      instructor: 'Jane Smith',
-      instructorRating: 5,
-      category: 'Development',
-      duration: 8,
-      students: 428,
-      lessons: 42,
-      price: 79.99,
-      level: 'Advanced',
-      image: '/api/placeholder/192/128'
-    },
-    {
-      id: 3,
-      title: 'Digital Marketing Fundamentals',
-      instructor: 'Mike Johnson',
-      instructorRating: 3,
-      category: 'Marketing',
-      duration: 6,
-      students: 312,
-      lessons: 32,
-      price: 59.99,
-      level: 'Intermediate',
-      image: '/api/placeholder/192/128'
-    },
-    // Add more sample courses as needed
-  ];
+  const [sampleCourses, setSampleCourses] = useState([]);
 
-  const categories = [
-    { label: 'Photography', value: 'photography', count: 15 },
-    { label: 'Development', value: 'development', count: 12 },
-    { label: 'Marketing', value: 'marketing', count: 8 },
-    { label: 'Business', value: 'business', count: 10 },
-  ];
-
-  const instructors = [
-    { label: 'John Doe', value: 'john-doe', count: 5 },
-    { label: 'Jane Smith', value: 'jane-smith', count: 4 },
-    { label: 'Mike Johnson', value: 'mike-johnson', count: 3 },
-  ];
-
-  const levels = [
-    { label: 'Beginner', value: 'beginner', count: 12 },
-    { label: 'Intermediate', value: 'intermediate', count: 8 },
-    { label: 'Advanced', value: 'advanced', count: 5 },
-  ];
-
-  // Filter Handlers
-  const handleCategoryChange = (value) => {
-    setSelectedCategories(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1);
-  };
-
-  const handleInstructorChange = (value) => {
-    setSelectedInstructors(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1);
-  };
-
-  const handleLevelChange = (value) => {
-    setSelectedLevels(prev => {
-      const isSelected = prev.includes(value);
-      if (isSelected) {
-        return prev.filter(v => v !== value);
-      }
-      return [...prev, value];
-    });
-    setCurrentPage(1);
-  };
-
+  
   const handleRatingChange = (rating) => {
     setSelectedRatings(prev => {
       const isSelected = prev.includes(rating);
@@ -237,39 +144,18 @@ const CourseListing = () => {
     setCurrentPage(1);
   };
 
-  // Search and Filter Logic
-  const filteredCourses = sampleCourses.filter(course => {
-    const searchMatch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const categoryMatch = selectedCategories.length === 0 || 
-                         selectedCategories.includes(course.category.toLowerCase());
-    
-    const instructorMatch = selectedInstructors.length === 0 ||
-                           selectedInstructors.includes(course.instructor.toLowerCase());
-    
-    const levelMatch = selectedLevels.length === 0 ||
-                      selectedLevels.includes(course.level.toLowerCase());
-    
-    const ratingMatch = selectedRatings.length === 0 ||
-                       selectedRatings.some(rating => course.instructorRating >= rating);
-    
-    return searchMatch && categoryMatch && instructorMatch && levelMatch && ratingMatch;
-  });
-
-  // Pagination Logic
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+  const totalPages = Math.ceil(sampleCourses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCourses = filteredCourses.slice(startIndex, endIndex);
+  const currentCourses = sampleCourses.slice(startIndex, endIndex);
 
-  // Simulated loading effect
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, [searchTerm, selectedCategories, selectedInstructors, selectedLevels, currentPage]);
+
   useEffect(() => {
     api.get('/courses?searchFlag=0')
       .then((res) => {
@@ -282,16 +168,29 @@ const CourseListing = () => {
   }
   , []);
 
+  useEffect(() => {
+    api.get(`/courses?searchFlag=1&teacherName=${searchTerm1}&title=${searchTerm}&rating=${selectedRatings}`)
+      .then((res) => {
+        console.log(res.data.data);
+        setSampleCourses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+  , [searchTerm, searchTerm1, selectedRatings]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex gap-8">
         {/* Filters Sidebar */}
         <div className="w-64 flex-shrink-0">
           <div className="sticky top-4">
+            <h3 className="font-semibold mb-2">Search courses</h3>
             <div className="relative mb-6">
               <input
                 type="text"
-                placeholder="Search courses or teachers..."
+                placeholder="Search courses..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -302,19 +201,20 @@ const CourseListing = () => {
               <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
             </div>
 
-            {/* <FilterSection
-              title="Course Category"
-              options={categories}
-              selected={selectedCategories}
-              onChange={handleCategoryChange}
-            /> */}
-
-            {/* <FilterSection
-              title="Instructors"
-              options={instructors}
-              selected={selectedInstructors}
-              onChange={handleInstructorChange}
-            /> */}
+            <h3 className="font-semibold mb-2">Search teachers</h3>
+            <div className="relative mb-6">
+              <input
+                type="text"
+                placeholder="Search teachers..."
+                value={searchTerm1}
+                onChange={(e) => {
+                  setSearchTerm1(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full p-2 pr-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute right-2 top-2.5 text-gray-400 w-5 h-5" />
+            </div>
 
             <RatingsFilterSection
               selectedRatings={selectedRatings}
@@ -328,7 +228,7 @@ const CourseListing = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">All Courses</h1>
             <span className="text-gray-600">
-              Showing {filteredCourses.length} courses
+              Showing {sampleCourses.length} courses
             </span>
           </div>
           
@@ -347,7 +247,7 @@ const CourseListing = () => {
           )}
 
           {/* Pagination */}
-          {filteredCourses.length > 0 && (
+          {sampleCourses.length > 0 && (
             <div className="flex justify-center gap-2 mt-8">
               <button 
                 className="px-3 py-1 rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
