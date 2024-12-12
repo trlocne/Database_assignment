@@ -86,7 +86,7 @@ const QuestionList = ({ question, quizSection }) => {
         <div className="mb-3">
           <div className="max-h-[30px] mb-2">
             <h2 className="font-bold">
-              {idx + 1}. {q.text}
+              {idx + 1}. {q.content}
             </h2>
           </div>
           {q.type === "multiple_choice" ? (
